@@ -25,6 +25,7 @@ import hu.muzso.android_system_dumper.upload.network.DefaultUploadProgressTracke
 import hu.muzso.android_system_dumper.upload.network.DefaultUploadRetryPolicy
 import hu.muzso.android_system_dumper.upload.network.DefaultUploadSelector
 import hu.muzso.android_system_dumper.upload.network.GofileUploadRepository
+import hu.muzso.android_system_dumper.upload.network.TorChecker
 import hu.muzso.android_system_dumper.upload.network.gateway.GatewayResult
 import hu.muzso.android_system_dumper.upload.network.gateway.GofileGateway
 import hu.muzso.android_system_dumper.upload.network.gateway.GofileUploadDomainModel
@@ -80,7 +81,8 @@ class UploadPipelineIntegrationTest {
     private val archiveRepository = DefaultArchiveRepository(zipCreator, fileSystem)
     private val createArchiveUseCase = CreateArchiveUseCase(archiveRepository, platformUtils)
 
-    private val uploadBatchUseCase = UploadBatchUseCase(torService, logger, executor, retryPolicy)
+    private val torChecker = mockk<TorChecker>(relaxed = true)
+    private val uploadBatchUseCase = UploadBatchUseCase(torService, torChecker, logger, executor, retryPolicy)
     private val cleanupUseCase = CleanupUseCase(fileSystem)
 
     private lateinit var uploadArchiveUseCase: UploadArchiveUseCase
@@ -214,7 +216,7 @@ class UploadPipelineIntegrationTest {
         val customProgressTracker = DefaultUploadProgressTracker(customUploadSelector)
         val customExecutor = DefaultUploadExecutor(customProgressTracker, logger)
         val customUploadBatchUseCase =
-            UploadBatchUseCase(torService, logger, customExecutor, retryPolicy)
+            UploadBatchUseCase(torService, torChecker, logger, customExecutor, retryPolicy)
 
         val customUseCase = UploadArchiveUseCase(
             fileSystem = fileSystem,
@@ -277,7 +279,7 @@ class UploadPipelineIntegrationTest {
         val customProgressTracker = DefaultUploadProgressTracker(customUploadSelector)
         val customExecutor = DefaultUploadExecutor(customProgressTracker, logger)
         val customUploadBatchUseCase =
-            UploadBatchUseCase(torService, logger, customExecutor, retryPolicy)
+            UploadBatchUseCase(torService, torChecker, logger, customExecutor, retryPolicy)
 
         val customUseCase = UploadArchiveUseCase(
             fileSystem, clock, logger, systemInfo, batchFilesUseCase,

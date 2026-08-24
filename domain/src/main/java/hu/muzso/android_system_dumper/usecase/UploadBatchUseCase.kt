@@ -4,6 +4,8 @@ import hu.muzso.android_system_dumper.logging.FileLogger
 import hu.muzso.android_system_dumper.model.DomainResult
 import hu.muzso.android_system_dumper.model.UploadError
 import hu.muzso.android_system_dumper.platform.TorServiceController
+import hu.muzso.android_system_dumper.upload.network.TerminalUploadException
+import hu.muzso.android_system_dumper.upload.network.TorChecker
 import hu.muzso.android_system_dumper.upload.network.UploadExecutor
 import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import hu.muzso.android_system_dumper.upload.network.UploadRetryPolicy
@@ -13,6 +15,7 @@ import kotlinx.coroutines.isActive
 
 class UploadBatchUseCase(
     private val torServiceController: TorServiceController,
+    private val torChecker: TorChecker,
     private val logger: FileLogger,
     private val executor: UploadExecutor,
     private val retryPolicy: UploadRetryPolicy
@@ -53,30 +56,44 @@ class UploadBatchUseCase(
         }
 
         try {
-            return retryPolicy.withRetry(fileLabel, retries, onStatusUpdate) {
+            return retryPolicy.withRetry(
+                label = fileLabel,
+                retries = retries,
+                onStatusUpdate = onStatusUpdate,
+                onFailure = { attempt, _ ->
+                    if (shouldUseTor && currentCoroutineContext().isActive && attempt < retries) {
+                        logger.i(tag, "Upload attempt $attempt failed with Tor. Rebuilding circuit...")
+                        torServiceController.rebuildCircuit()
+                        if (torServiceController.waitForCircuit(30000L)) {
+                            logger.i(tag, "New Tor circuit established for next attempt. Verifying Tor connection...")
+                            try {
+                                if (torChecker.check()) {
+                                    logger.i(tag, "Tor verification successful")
+                                } else {
+                                    val error = UploadError.TorVerificationFailed("Tor verification failed: requests not going through Tor")
+                                    logger.e(tag, error.message)
+                                    throw TerminalUploadException(error)
+                                }
+                            } catch (e: Exception) {
+                                if (e is TerminalUploadException) throw e
+                                val error = UploadError.TorVerificationFailed("Tor verification failed with error: ${e.message}")
+                                logger.e(tag, error.message, e)
+                                throw TerminalUploadException(error)
+                            }
+                        } else {
+                            logger.w(tag, "Timed out waiting for new Tor circuit, will retry anyway")
+                        }
+                    }
+                }
+            ) {
                 uploadBlock()
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            val error = (e as? UploadRetryException)?.error ?: UploadError.Unknown(e.message ?: "Upload failed", e)
-
-            if (shouldUseTor && currentCoroutineContext().isActive) {
-                logger.i(tag, "Upload failed after $retries retries with Tor. Rebuilding circuit and retrying...")
-                torServiceController.rebuildCircuit()
-                if (torServiceController.waitForCircuit(30000L)) {
-                    logger.i(tag, "New Tor circuit established, retrying upload")
-                } else {
-                    logger.w(tag, "Timed out waiting for new Tor circuit, retrying anyway")
-                }
-                return try {
-                    retryPolicy.withRetry(fileLabel, 1, onStatusUpdate) {
-                        uploadBlock()
-                    }
-                } catch (e2: Exception) {
-                    if (e2 is CancellationException) throw e2
-                    val error2 = (e2 as? UploadRetryException)?.error ?: UploadError.Unknown(e2.message ?: "Upload failed", e2)
-                    DomainResult.Error(error2)
-                }
+            val error = when (e) {
+                is UploadRetryException -> e.error
+                is TerminalUploadException -> e.error
+                else -> UploadError.Unknown(e.message ?: "Upload failed", e)
             }
             return DomainResult.Error(error)
         }

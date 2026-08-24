@@ -5,6 +5,7 @@ interface UploadRetryPolicy {
         label: String,
         retries: Int,
         onStatusUpdate: suspend (label: String, attempt: Int, totalRetries: Int) -> Unit,
+        onFailure: suspend (attempt: Int, ex: Exception) -> Unit = { _, _ -> },
         block: suspend () -> T
     ): T
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth
 import hu.muzso.android_system_dumper.common.Clock
+import hu.muzso.android_system_dumper.common.DefaultNetworkUtils
 import hu.muzso.android_system_dumper.common.NetworkUtils
 import hu.muzso.android_system_dumper.domain.fixtures.FakeMemoryFileSystem
 import hu.muzso.android_system_dumper.logging.FileLogger
@@ -40,6 +41,8 @@ class NetworkIntegrationTest {
         server = MockWebServer()
         server.start()
 
+        networkUtils = DefaultNetworkUtils()
+
         val context = ApplicationProvider.getApplicationContext<Context>()
         val retrofitBuilder = Retrofit.Builder()
             .addConverterFactory(MoshiConverterFactory.create())
@@ -59,7 +62,7 @@ class NetworkIntegrationTest {
         val retryPolicy = DefaultUploadRetryPolicy(logger)
         val torServiceController = mockk<TorServiceController>(relaxed = true)
 
-        useCase = UploadBatchUseCase(torServiceController, logger, executor, retryPolicy)
+        useCase = UploadBatchUseCase(torServiceController, torChecker, logger, executor, retryPolicy)
     }
 
     @After
@@ -133,6 +136,7 @@ class NetworkIntegrationTest {
             is UploadError.ZeroSuccessfulUploads -> error.message
             is UploadError.MissingDownloadURL -> error.message
             is UploadError.InsufficientStorage -> "Insufficient storage: ${error.requiredBytes} bytes required"
+            is UploadError.TorVerificationFailed -> error.message
             is UploadError.Unknown -> error.message
         }
         Truth.assertThat(errorMessage).contains("500")

@@ -19,12 +19,13 @@ class DefaultUploadRetryPolicy @Inject constructor(
      * 
      * This method will attempt to run the [block] up to [retries] times. If an attempt
      * fails with an exception (other than [CancellationException]), it will log the 
-     * error, wait for 1 second, and retry. It reports the current status via the 
-     * [onStatusUpdate] callback.
+     * error, call the [onFailure] hook, wait for 1 second, and retry. It reports the 
+     * current status via the [onStatusUpdate] callback.
      *
      * @param label A descriptive label for the operation being retried.
      * @param retries The maximum number of attempts allowed.
      * @param onStatusUpdate A callback to report the current attempt and total retries.
+     * @param onFailure A callback to invoke when an attempt fails.
      * @param block The suspending block of code to execute.
      * @return The result of the successful execution of the block.
      * @throws Exception The last encountered exception if all retry attempts fail.
@@ -33,6 +34,7 @@ class DefaultUploadRetryPolicy @Inject constructor(
         label: String,
         retries: Int,
         onStatusUpdate: suspend (label: String, attempt: Int, totalRetries: Int) -> Unit,
+        onFailure: suspend (attempt: Int, ex: Exception) -> Unit,
         block: suspend () -> T
     ): T {
         if (retries < 1) throw IllegalArgumentException("retries must be > 0")
@@ -43,9 +45,10 @@ class DefaultUploadRetryPolicy @Inject constructor(
             try {
                 return block()
             } catch (e: Exception) {
-                if (e is CancellationException) throw e
+                if (e is CancellationException || e is TerminalUploadException) throw e
                 logger.e(TAG, "Attempt $attempt of $retries failed for $label: ${e.message}", e)
                 ex = e
+                onFailure(attempt, e)
                 if (attempt < retries) delay(1000.milliseconds)
             }
         }

@@ -21,7 +21,7 @@ class HttpClientProvider @Inject constructor() {
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
+        .retryOnConnectionFailure(false)
         .build()
 
     private var currentProxy: Proxy? = null

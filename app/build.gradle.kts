@@ -46,12 +46,10 @@ android {
       isShrinkResources = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       buildConfigField("int", "BATCH_LIMIT", "0")
-      buildConfigField("int", "DEFAULT_BATCH_SIZE_MB", "500")
       buildConfigField("boolean", "LOG_TO_SYSTEM", "false")
     }
     debug {
       buildConfigField("int", "BATCH_LIMIT", "1")
-      buildConfigField("int", "DEFAULT_BATCH_SIZE_MB", "200")
       buildConfigField("boolean", "LOG_TO_SYSTEM", "true")
     }
   }

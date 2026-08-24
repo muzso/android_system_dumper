@@ -14,6 +14,8 @@ import hu.muzso.android_system_dumper.platform.DefaultQrGenerator
 import hu.muzso.android_system_dumper.platform.QrGenerator
 import hu.muzso.android_system_dumper.platform.TorServiceController
 import hu.muzso.android_system_dumper.platform.XmlParser
+import hu.muzso.android_system_dumper.upload.network.DefaultTorChecker
+import hu.muzso.android_system_dumper.upload.network.TorChecker
 import javax.inject.Singleton
 
 @Module
@@ -39,4 +41,8 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun bindRandomProvider(impl: DefaultRandomProvider): RandomProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindTorChecker(impl: DefaultTorChecker): TorChecker
 }

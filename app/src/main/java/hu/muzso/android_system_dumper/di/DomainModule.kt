@@ -17,6 +17,7 @@ import hu.muzso.android_system_dumper.platform.TorServiceController
 import hu.muzso.android_system_dumper.scan.ArchiveRepository
 import hu.muzso.android_system_dumper.scan.ScanRepository
 import hu.muzso.android_system_dumper.upload.BatchingLogic
+import hu.muzso.android_system_dumper.upload.network.TorChecker
 import hu.muzso.android_system_dumper.upload.network.UploadExecutor
 import hu.muzso.android_system_dumper.upload.network.UploadProgressTracker
 import hu.muzso.android_system_dumper.upload.network.UploadRetryPolicy
@@ -93,10 +94,11 @@ object DomainModule {
     @Singleton
     fun provideUploadBatchUseCase(
         torServiceController: TorServiceController,
+        torChecker: TorChecker,
         logger: FileLogger,
         executor: UploadExecutor,
         retryPolicy: UploadRetryPolicy
-    ) = UploadBatchUseCase(torServiceController, logger, executor, retryPolicy)
+    ) = UploadBatchUseCase(torServiceController, torChecker, logger, executor, retryPolicy)
 
     @Provides
     @Singleton

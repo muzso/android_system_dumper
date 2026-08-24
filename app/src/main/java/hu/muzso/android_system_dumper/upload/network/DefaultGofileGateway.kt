@@ -92,15 +92,13 @@ class DefaultGofileGateway @Inject constructor(
             }
             override fun writeTo(sink: BufferedSink) {
                 runBlocking {
-                    try {
-                        fileSystem.openInputStream(filePath).use { input ->
-                            val buffer = ByteArray(8192)
-                            var read: Int
-                            while (input.read(buffer).also { read = it } != -1) {
-                                sink.write(buffer, 0, read)
-                            }
+                    fileSystem.openInputStream(filePath).use { input ->
+                        val buffer = ByteArray(8192)
+                        var read: Int
+                        while (input.read(buffer).also { read = it } != -1) {
+                            sink.write(buffer, 0, read)
                         }
-                    } catch (_: Exception) {}
+                    }
                 }
             }
         }

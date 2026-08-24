@@ -5,6 +5,7 @@ import hu.muzso.android_system_dumper.domain.fixtures.FakeFileLogger
 import hu.muzso.android_system_dumper.domain.fixtures.FakeTorServiceController
 import hu.muzso.android_system_dumper.model.DomainResult
 import hu.muzso.android_system_dumper.model.UploadError
+import hu.muzso.android_system_dumper.upload.network.TorChecker
 import hu.muzso.android_system_dumper.upload.network.UploadExecutor
 import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import hu.muzso.android_system_dumper.upload.network.UploadRetryPolicy
@@ -26,11 +27,12 @@ class UploadBatchUseCaseTest {
     private val repository = mockk<UploadRepository>(relaxed = true)
     private val executor = mockk<UploadExecutor>()
     private val retryPolicy = mockk<UploadRetryPolicy>()
+    private val torChecker = mockk<TorChecker>(relaxed = true)
     private lateinit var uploadBatchUseCase: UploadBatchUseCase
 
     @Before
     fun setup() {
-        uploadBatchUseCase = UploadBatchUseCase(torService, logger, executor, retryPolicy)
+        uploadBatchUseCase = UploadBatchUseCase(torService, torChecker, logger, executor, retryPolicy)
     }
 
     @Test
@@ -39,7 +41,7 @@ class UploadBatchUseCaseTest {
         val expectedUrl = "https://success.url"
         
         val blockSlot = slot<suspend () -> DomainResult<String, UploadError>>()
-        coEvery { retryPolicy.withRetry(any(), any(), any(), capture(blockSlot)) } coAnswers {
+        coEvery { retryPolicy.withRetry(any(), any(), any(), any(), capture(blockSlot)) } coAnswers {
             blockSlot.captured.invoke()
         }
         
@@ -65,7 +67,7 @@ class UploadBatchUseCaseTest {
         val expectedError = UploadError.Unknown("Fail")
         
         val blockSlot = slot<suspend () -> DomainResult<String, UploadError>>()
-        coEvery { retryPolicy.withRetry(any(), any(), any(), capture(blockSlot)) } coAnswers {
+        coEvery { retryPolicy.withRetry(any(), any(), any(), any(), capture(blockSlot)) } coAnswers {
             blockSlot.captured.invoke()
         }
         
@@ -86,16 +88,21 @@ class UploadBatchUseCaseTest {
     }
 
     @Test
-    fun `DomainResult Error triggers Tor circuit rebuild when using Tor`() = runTest {
+    fun `Tor circuit rebuild triggered on failure when using Tor`() = runTest {
         val file = File("test.zip")
         val expectedError = UploadError.Unknown("Bad Gateway")
 
-        // Mock retryPolicy to just invoke the block and propagate exceptions
         val blockSlot = slot<suspend () -> DomainResult<String, UploadError>>()
+        val onFailureSlot = slot<suspend (Int, Exception) -> Unit>()
         coEvery {
-            retryPolicy.withRetry(any(), any(), any(), capture(blockSlot))
+            retryPolicy.withRetry(any(), any(), any(), capture(onFailureSlot), capture(blockSlot))
         } coAnswers {
-            blockSlot.captured.invoke()
+            try {
+                blockSlot.captured.invoke()
+            } catch (e: Exception) {
+                onFailureSlot.captured.invoke(1, e)
+                throw e
+            }
         }
 
         coEvery { executor.executeUpload(repository, any(), file.absolutePath, any()) } returns DomainResult.Error(expectedError)
@@ -112,74 +119,11 @@ class UploadBatchUseCaseTest {
         )
 
         assertThat(result).isInstanceOf(DomainResult.Error::class.java)
-        assertThat((result as DomainResult.Error).error).isEqualTo(expectedError)
-
-        // Verify Tor rebuild was triggered
+        
+        // Verify Tor rebuild was triggered via onFailure
         assertThat(torService.rebuildCircuitCalls.get()).isEqualTo(1)
-        // Verify executor was called twice: once in first withRetry, once in second withRetry after rebuild
-        coVerify(exactly = 2) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
-    }
-
-    @Test
-    fun `Generic exception triggers Tor circuit rebuild when using Tor`() = runTest {
-        val file = File("test.zip")
-        val expectedError = "Some IO Error"
-
-        val blockSlot = slot<suspend () -> DomainResult<String, UploadError>>()
-        coEvery {
-            retryPolicy.withRetry(any(), any(), any(), capture(blockSlot))
-        } coAnswers {
-            blockSlot.captured.invoke()
-        }
-
-        coEvery { executor.executeUpload(repository, any(), file.absolutePath, any()) } throws RuntimeException(expectedError)
-
-        val result = uploadBatchUseCase.execute(
-            repository = repository,
-            fileName = "test.zip",
-            filePath = file.absolutePath,
-            retries = 1,
-            fileLabel = "Test Label",
-            shouldUseTor = true,
-            onProgress = { _, _ -> },
-            onStatusUpdate = { _, _, _ -> }
-        )
-
-        assertThat(result).isInstanceOf(DomainResult.Error::class.java)
-        assertThat((result as DomainResult.Error).error).isInstanceOf(UploadError.Unknown::class.java)
-
-        assertThat(torService.rebuildCircuitCalls.get()).isEqualTo(1)
-        coVerify(exactly = 2) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
-    }
-
-    @Test
-    fun `Tor wait circuit timeout still attempts retry`() = runTest {
-        val file = File("test.zip")
-        torService.setCircuitReady(false) // Simulate timeout
-
-        val blockSlot = slot<suspend () -> DomainResult<String, UploadError>>()
-        coEvery {
-            retryPolicy.withRetry(any(), any(), any(), capture(blockSlot))
-        } coAnswers {
-            blockSlot.captured.invoke()
-        }
-
-        coEvery { executor.executeUpload(repository, any(), file.absolutePath, any()) } returns DomainResult.Error(UploadError.NetworkError("Fail", null))
-
-        uploadBatchUseCase.execute(
-            repository = repository,
-            fileName = "test.zip",
-            filePath = file.absolutePath,
-            retries = 1,
-            fileLabel = "Test Label",
-            shouldUseTor = true,
-            onProgress = { _, _ -> },
-            onStatusUpdate = { _, _, _ -> }
-        )
-
-        assertThat(torService.rebuildCircuitCalls.get()).isEqualTo(1)
-        // One from initial withRetry, one from retry after Tor rebuild (even if timeout)
-        coVerify(exactly = 2) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
+        coVerify(exactly = 1) { torChecker.check() }
+        coVerify(exactly = 1) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
     }
 
     @Test
@@ -187,10 +131,16 @@ class UploadBatchUseCaseTest {
         val file = File("test.zip")
 
         val blockSlot = slot<suspend () -> DomainResult<String, UploadError>>()
+        val onFailureSlot = slot<suspend (Int, Exception) -> Unit>()
         coEvery {
-            retryPolicy.withRetry(any(), any(), any(), capture(blockSlot))
+            retryPolicy.withRetry(any(), any(), any(), capture(onFailureSlot), capture(blockSlot))
         } coAnswers {
-            blockSlot.captured.invoke()
+            try {
+                blockSlot.captured.invoke()
+            } catch (e: Exception) {
+                onFailureSlot.captured.invoke(1, e)
+                throw e
+            }
         }
 
         coEvery { executor.executeUpload(repository, any(), file.absolutePath, any()) } returns DomainResult.Error(UploadError.NetworkError("Fail", null))
@@ -208,5 +158,49 @@ class UploadBatchUseCaseTest {
 
         assertThat(torService.rebuildCircuitCalls.get()).isEqualTo(0)
         coVerify(exactly = 1) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
+    }
+
+    @Test
+    fun `Tor verification failure after rebuild aborts upload`() = runTest {
+        val file = File("test.zip")
+        val expectedError = UploadError.Unknown("Initial Fail")
+
+        val blockSlot = slot<suspend () -> DomainResult<String, UploadError>>()
+        val onFailureSlot = slot<suspend (Int, Exception) -> Unit>()
+        
+        // Mocking retryPolicy to behave like DefaultUploadRetryPolicy regarding TerminalUploadException
+        coEvery {
+            retryPolicy.withRetry(any(), any(), any(), capture(onFailureSlot), capture(blockSlot))
+        } coAnswers {
+            try {
+                blockSlot.captured.invoke()
+            } catch (e: Exception) {
+                onFailureSlot.captured.invoke(1, e)
+                throw e
+            }
+        }
+
+        coEvery { executor.executeUpload(repository, any(), file.absolutePath, any()) } returns DomainResult.Error(expectedError)
+        coEvery { torChecker.check() } returns false // Confirming a leak/verification failure
+
+        val result = uploadBatchUseCase.execute(
+            repository = repository,
+            fileName = "test.zip",
+            filePath = file.absolutePath,
+            retries = 3,
+            fileLabel = "Test Label",
+            shouldUseTor = true,
+            onProgress = { _, _ -> },
+            onStatusUpdate = { _, _, _ -> }
+        )
+
+        assertThat(result).isInstanceOf(DomainResult.Error::class.java)
+        val finalError = (result as DomainResult.Error).error
+        assertThat(finalError).isInstanceOf(UploadError.TorVerificationFailed::class.java)
+        
+        // Verify it stopped after 1 attempt because of TerminalUploadException
+        coVerify(exactly = 1) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
+        assertThat(torService.rebuildCircuitCalls.get()).isEqualTo(1)
+        coVerify(exactly = 1) { torChecker.check() }
     }
 }

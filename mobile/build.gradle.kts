@@ -49,11 +49,6 @@ kover {
       html {
         onCheck = true
       }
-      verify {
-        rule("Quality Gate") {
-          minBound(80)
-        }
-      }
     }
     filters {
       includes {

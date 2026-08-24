@@ -6,6 +6,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.domain.fixtures.FakeFileLogger
+import hu.muzso.android_system_dumper.platform.ResourceProvider
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,6 +34,8 @@ class TorCheckerTest {
     private val logger = FakeFileLogger()
     private lateinit var httpClientProvider: HttpClientProvider
     private lateinit var retrofitBuilder: Retrofit.Builder
+    private val retryPolicy = DefaultUploadRetryPolicy(logger)
+    private val resourceProvider = mockk<ResourceProvider>()
 
     @Before
     fun setup() {
@@ -46,6 +49,7 @@ class TorCheckerTest {
         // Mocking the string resource for error messages
         every { context.getString(R.string.http_error_from, any(), any()) } returns "HTTP Error"
         every { context.getString(R.string.error_processing_response, any()) } returns "Processing Error"
+        every { resourceProvider.getMaxUploadRetries() } returns 1
     }
 
     @After
@@ -55,7 +59,7 @@ class TorCheckerTest {
 
     @Test
     fun `torCheck returns true when IsTor is true`() = runTest {
-        val torChecker = TorChecker(context, logger, retrofitBuilder, httpClientProvider)
+        val torChecker = DefaultTorChecker(context, logger, retrofitBuilder, httpClientProvider, retryPolicy, resourceProvider)
         torChecker.setTorCheckUrl(server.url("/api/ip").toString())
         server.enqueue(MockResponse().setBody("""{"IsTor": true}"""))
         
@@ -68,7 +72,7 @@ class TorCheckerTest {
 
     @Test
     fun `torCheck returns false when IsTor is false`() = runTest {
-        val torChecker = TorChecker(context, logger, retrofitBuilder, httpClientProvider)
+        val torChecker = DefaultTorChecker(context, logger, retrofitBuilder, httpClientProvider, retryPolicy, resourceProvider)
         torChecker.setTorCheckUrl(server.url("/api/ip").toString())
         server.enqueue(MockResponse().setBody("""{"IsTor": false}"""))
         
@@ -79,7 +83,7 @@ class TorCheckerTest {
 
     @Test
     fun `torCheck throws IOException when HTTP error occurs`() = runTest {
-        val torChecker = TorChecker(context, logger, retrofitBuilder, httpClientProvider)
+        val torChecker = DefaultTorChecker(context, logger, retrofitBuilder, httpClientProvider, retryPolicy, resourceProvider)
         torChecker.setTorCheckUrl(server.url("/api/ip").toString())
         server.enqueue(MockResponse().setResponseCode(500))
         
@@ -93,7 +97,7 @@ class TorCheckerTest {
 
     @Test
     fun `torCheck throws IOException when JSON is malformed`() = runTest {
-        val torChecker = TorChecker(context, logger, retrofitBuilder, httpClientProvider)
+        val torChecker = DefaultTorChecker(context, logger, retrofitBuilder, httpClientProvider, retryPolicy, resourceProvider)
         torChecker.setTorCheckUrl(server.url("/api/ip").toString())
         server.enqueue(MockResponse().setBody("""{"invalid": "json"}"""))
         
@@ -107,7 +111,7 @@ class TorCheckerTest {
 
     @Test
     fun `torCheck throws IOException on network failure`() = runTest {
-        val torChecker = TorChecker(context, logger, retrofitBuilder, httpClientProvider)
+        val torChecker = DefaultTorChecker(context, logger, retrofitBuilder, httpClientProvider, retryPolicy, resourceProvider)
         torChecker.setTorCheckUrl(server.url("/api/ip").toString())
         server.shutdown() // Simulate network failure
         
@@ -117,5 +121,21 @@ class TorCheckerTest {
         } catch (_: IOException) {
             // Success
         }
+    }
+
+    @Test
+    fun `torCheck retries on failure`() = runTest {
+        every { resourceProvider.getMaxUploadRetries() } returns 3
+        val torChecker = DefaultTorChecker(context, logger, retrofitBuilder, httpClientProvider, retryPolicy, resourceProvider)
+        torChecker.setTorCheckUrl(server.url("/api/ip").toString())
+        
+        server.enqueue(MockResponse().setResponseCode(500))
+        server.enqueue(MockResponse().setResponseCode(500))
+        server.enqueue(MockResponse().setBody("""{"IsTor": true}"""))
+        
+        val result = torChecker.check()
+        
+        assertThat(result).isTrue()
+        assertThat(server.requestCount).isEqualTo(3)
     }
 }

@@ -21,6 +21,7 @@ sealed interface UploadError {
     data class ZeroSuccessfulUploads(val message: String) : UploadError
     data class MissingDownloadURL(val message: String) : UploadError
     data class InsufficientStorage(val requiredBytes: Long) : UploadError
+    data class TorVerificationFailed(val message: String) : UploadError
     data class Unknown(val message: String, val cause: Throwable? = null) : UploadError
 }
 

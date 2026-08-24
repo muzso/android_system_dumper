@@ -271,6 +271,7 @@ class UploadViewModel @Inject constructor(
                             is UploadError.ZeroSuccessfulUploads -> resourceProvider.getString(R.string.upload_zero_success, status.runtimeSeconds / 60.0)
                             is UploadError.MissingDownloadURL -> resourceProvider.getString(R.string.upload_error_empty_url, platformUtils.formatBytes(status.totalBytes), status.runtimeSeconds / 60.0)
                             is UploadError.InsufficientStorage -> resourceProvider.getString(R.string.insufficient_cache_space_required, platformUtils.formatBytes(error.requiredBytes))
+                            is UploadError.TorVerificationFailed -> resourceProvider.getString(R.string.traffic_doesnt_go_through_tor_error)
                             is UploadError.Unknown -> error.message
                         }
                         settings.onFatalError(resourceProvider.getString(R.string.upload_crashed, errorMessage))

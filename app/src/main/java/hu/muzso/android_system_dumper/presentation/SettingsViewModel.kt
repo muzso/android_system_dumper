@@ -75,7 +75,7 @@ class SettingsViewModel @Inject constructor(
     val appState: StateFlow<AppState> = _appState.asStateFlow()
 
     private val _ignoreExcludeList = savedStateHandle.getStateFlow("ignoreExcludeList", false)
-    private val _customBatchSizeMb = savedStateHandle.getStateFlow("customBatchSizeMb", BuildConfig.DEFAULT_BATCH_SIZE_MB.toString())
+    private val _customBatchSizeMb = savedStateHandle.getStateFlow("customBatchSizeMb", "200")
     private val _proxySpecification = savedStateHandle.getStateFlow("proxySpecification", "")
     private val _shouldUseTor = savedStateHandle.getStateFlow("shouldUseTor", true)
     private val _shouldUploadZips = savedStateHandle.getStateFlow("shouldUploadZips", true)

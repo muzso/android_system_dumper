@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.logging.FileLogger
+import hu.muzso.android_system_dumper.platform.ResourceProvider
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import java.io.IOException
@@ -11,12 +12,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class TorChecker @Inject constructor(
+class DefaultTorChecker @Inject constructor(
     @ApplicationContext private val context: Context,
     private val logger: FileLogger,
     private val retrofitBuilder: Retrofit.Builder,
-    private val httpClientProvider: HttpClientProvider
-) {
+    private val httpClientProvider: HttpClientProvider,
+    private val retryPolicy: UploadRetryPolicy,
+    private val resourceProvider: ResourceProvider
+) : TorChecker {
     companion object {
         private const val TAG = "TorChecker"
         private const val DEFAULT_TOR_CHECK_URL = "https://check.torproject.org/api/ip"
@@ -35,11 +38,27 @@ class TorChecker @Inject constructor(
      * 
      * This method uses Retrofit to call a Tor check service (by default check.torproject.org).
      * It handles network errors and parses the JSON response to determine the Tor status.
+     * It uses the retry policy with the retry limit obtained from the resource provider.
      *
      * @return True if the check confirms traffic is through Tor, false otherwise.
      * @throws IOException If the network request fails or the response cannot be parsed.
      */
-    suspend fun check(): Boolean {
+    override suspend fun check(): Boolean {
+        val maxRetries = resourceProvider.getMaxUploadRetries().coerceAtLeast(1)
+        
+        return retryPolicy.withRetry(
+            label = "Tor Verification",
+            retries = maxRetries,
+            onStatusUpdate = { _, attempt, total ->
+                logger.d(TAG, "Tor verification attempt $attempt of $total")
+            },
+            onFailure = { _, _ -> }
+        ) {
+            performCheck()
+        }
+    }
+
+    private suspend fun performCheck(): Boolean {
         val client = httpClientProvider.getClient()
         
         val api = if (client === lastUsedClient && cachedApi != null) {
