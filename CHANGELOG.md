@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- .gitignore was buggy: the `gradle` directory and `gradlew*` scripts must be in the repo
 - DefaultGofileGateway swallowed exceptions while writing to the network connection
 - removed reference to the old "Dummy" file sharing service from the help description (that feature was scrapped before the first release)
 - Kover quality gates for `mobile` and `automotive` modules sometimes caused the `check` task to fail (seemingly randomly), removed them until we get some code in either of these modules that actually has to be tested

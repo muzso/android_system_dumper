@@ -3,14 +3,11 @@
 .gradle_home/
 build/
 release/
-gradle/
-gradlew
-gradlew.bat
 
 # Gemini AI artifacts
 .artifacts/
 
-# Build cache
+# Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .kotlin
 
 # Local configuration file (sdk path, etc)
@@ -25,8 +22,10 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
+*.aab
 *.apk
 output.json
+output-metadata.json
 
 # IntelliJ
 *.iml
@@ -44,7 +43,4 @@ google-services.json
 
 # Android Profiling
 *.hprof
-
-# Build artifacts for native C/C++ JNI code
-.cxx/
 
