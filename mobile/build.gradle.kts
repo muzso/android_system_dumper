@@ -13,8 +13,8 @@ android {
     applicationId = "hu.muzso.android_system_dumper.mobile"
     minSdk = 26
     targetSdk = 37
-    versionCode = 1
-    versionName = "1.0.0"
+    versionCode = 2
+    versionName = "1.0.1"
 
     testInstrumentationRunner = "hu.muzso.android_system_dumper.HiltTestRunner"
   }
