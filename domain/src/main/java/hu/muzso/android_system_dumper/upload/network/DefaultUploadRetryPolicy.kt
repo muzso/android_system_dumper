@@ -1,0 +1,54 @@
+package hu.muzso.android_system_dumper.upload.network
+
+import hu.muzso.android_system_dumper.logging.FileLogger
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
+
+private const val TAG = "UploadRetryPolicy"
+
+@Singleton
+class DefaultUploadRetryPolicy @Inject constructor(
+    private val logger: FileLogger
+) : UploadRetryPolicy {
+
+    /**
+     * Executes a suspending block of code with a retry mechanism.
+     * 
+     * This method will attempt to run the [block] up to [retries] times. If an attempt
+     * fails with an exception (other than [CancellationException]), it will log the 
+     * error, wait for 1 second, and retry. It reports the current status via the 
+     * [onStatusUpdate] callback.
+     *
+     * @param label A descriptive label for the operation being retried.
+     * @param retries The maximum number of attempts allowed.
+     * @param onStatusUpdate A callback to report the current attempt and total retries.
+     * @param block The suspending block of code to execute.
+     * @return The result of the successful execution of the block.
+     * @throws Exception The last encountered exception if all retry attempts fail.
+     */
+    override suspend fun <T> withRetry(
+        label: String,
+        retries: Int,
+        onStatusUpdate: suspend (label: String, attempt: Int, totalRetries: Int) -> Unit,
+        block: suspend () -> T
+    ): T {
+        if (retries < 1) throw IllegalArgumentException("retries must be > 0")
+        var ex: Exception? = null
+        for (attempt in 1..retries) {
+            onStatusUpdate(label, attempt, retries)
+            logger.d(TAG, "withRetry: attempt $attempt for $label")
+            try {
+                return block()
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                logger.e(TAG, "Attempt $attempt of $retries failed for $label: ${e.message}", e)
+                ex = e
+                if (attempt < retries) delay(1000.milliseconds)
+            }
+        }
+        throw ex!!
+    }
+}

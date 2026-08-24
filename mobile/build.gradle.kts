@@ -1,0 +1,89 @@
+plugins {
+  alias(libs.plugins.android.application)
+  alias(libs.plugins.hilt)
+  alias(libs.plugins.google.devtools.ksp)
+  alias(libs.plugins.kover)
+}
+
+android {
+  namespace = "hu.muzso.android_system_dumper.mobile"
+  compileSdk = 37
+
+  defaultConfig {
+    applicationId = "hu.muzso.android_system_dumper.mobile"
+    minSdk = 26
+    targetSdk = 37
+    versionCode = 1
+    versionName = "1.0.0"
+
+    testInstrumentationRunner = "hu.muzso.android_system_dumper.HiltTestRunner"
+  }
+
+  buildTypes {
+    release {
+      isCrunchPngs = false
+      // something about either minification or shrinking or obfuscation breaks Tor
+      isMinifyEnabled = false
+      isShrinkResources = false
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+    }
+  }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+  }
+  buildFeatures {
+    buildConfig = true
+  }
+}
+
+kover {
+  reports {
+    total {
+      log {
+        onCheck = true
+      }
+      xml {
+        onCheck = true
+      }
+      html {
+        onCheck = true
+      }
+      verify {
+        rule("Quality Gate") {
+          minBound(80)
+        }
+      }
+    }
+    filters {
+      includes {
+        packages("hu.muzso.android_system_dumper")
+      }
+      excludes {
+        classes(
+          "hu.muzso.android_system_dumper.mobile.BuildConfig",
+          "hu.muzso.android_system_dumper.MobileApplication",
+          "hu.muzso.android_system_dumper.HiltTestRunner",
+          "**.Hilt_*",
+          "**.*_Factory",
+          "**.*_HiltModules*",
+          "**.*_MembersInjector",
+          "**.*_Provide*Factory",
+          "**.*_GeneratedInjector",
+          "**.*JsonAdapter",
+          "**.*_Impl",
+          "**.*ComposableSingletons*",
+          "**.*ComposableLambda*",
+          "**.*$*"
+        )
+        annotatedBy("javax.annotation.processing.Generated")
+      }
+    }
+  }
+}
+
+dependencies {
+  implementation(project(":app"))
+  implementation(libs.hilt.android)
+  ksp(libs.hilt.compiler)
+}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Android System Dumper</string>
+    <string name="step_1_filesystem_scan">Step 1: Filesystem Scan</string>
+    <string name="no_of_readable_files">No. of readable files:</string>
+    <string name="total_size">Total size:</string>
+    <string name="scanning">Scanning ...</string>
+    <string name="preparing">Preparing ...</string>
+    <string name="finished">Finished</string>
+    <string name="aborted">Aborted</string>
+    <string name="ready">Ready</string>
+    <string name="ignore_exclude_list">Ignore exclude list</string>
+    <string name="stop">Stop</string>
+    <string name="start">Start</string>
+    <string name="step_2_packaging_upload"><![CDATA[Step 2: Packaging & Upload]]></string>
+    <string name="custom_batch_size_mb">Custom batch size (MB)</string>
+    <string name="proxy">Proxy</string>
+    <string name="use_tor_network">Use Tor network</string>
+    <string name="select_what_to_upload">Select what to upload:</string>
+    <string name="readable_files_bundled_into_zip_archives">Readable files bundled into ZIP archives</string>
+    <string name="list_of_readable_files">List of readable files</string>
+    <string name="list_of_unreadable_files">List of unreadable files</string>
+    <string name="list_of_excluded_files">List of excluded files</string>
+    <string name="list_of_missing_files">List of missing files</string>
+    <string name="list_of_symlinks">List of symlinks</string>
+    <string name="output_of_getprop">Output of getprop</string>
+    <string name="upload_logs">Application logs</string>
+    <string name="progress_of_file_uploads">Progress of file uploads (success / total):</string>
+    <string name="percent_uploaded">%1$.1f%% uploaded</string>
+    <string name="x_of_y">%1$s of %2$s</string>
+    <string name="step_3_download_url_list_is_complete">Step 3: Download URL is ready!</string>
+    <string name="the_list_of_download_urls_is_available_at">Files can be downloaded using the following URL:</string>
+    <string name="copied_url">Copied URL</string>
+    <string name="back">Back</string>
+    <string name="help_instructions"><![CDATA[Help & Instructions]]></string>
+    <string name="help_app_description_title">App description</string>
+    <string name="help_app_description_description">%1$s recursively scans the device\'s filesystem for files it can read. These are packaged into size-limited and encrypted ZIP bundles and uploaded to a file sharing service. A number of text files (with file lists, logs, etc. generated during the scan) can also be uploaded. In the end, a URL and the ZIP encryption passphrase are shown so you can download the uploaded files and unpack them. Optionally this URL can be rendered as a QR code too.</string>
+    <string name="help_input_fields_controls_title"><![CDATA[Input fields & controls]]></string>
+    <string name="help_input_fields_controls_description">• Ignore exclude list: If enabled, filesystem scanning will not exclude files even if they match the built-in exclusion list.\n\n
+• File sharing service: Select the service to upload to. The \"Dummy\" service is for testing, it doesn\'t upload anything anywhere and produces a fake download URL in the end.\n\n
+• ZIP encryption: By default files are packaged into password-protected ZIP files. Here you can disable encryption or select a stronger encryption method (AES), but for the latter you might need third-party tools to decrypt and unpack.\n\n
+• Custom batch size (MB): Specify the size limit for each ZIP bundle (must be between %1$d and %2$d MB). If available storage space is less than this limit, processing will be aborted. Increasing the batch size might result in failed uploads, the default usually works.\n\n
+• Proxy: Specify a proxy for HTTP requests. Can be an HTTP proxy (start with \"http://\") or a SOCKS proxy (either start with \"socks://\" or with the IP address or hostname). If you only enter a (TCP) port number, a SOCKS proxy will be assumed to listen on localhost (127.0.0.1) and the entered port.\n\n
+• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections through Tor and/or the upload speed might be a lot slower.\n\n
+• Readable files bundled into ZIP archives: Control if the actual ZIP bundles containing the collected readable files should be uploaded. These ZIPs can take up several gigabytes and upload might take a long time depending on your internet connection\'s bandwidth. Disabling this option is good for a dry-run. You can just upload the list of files that were found to be readable, open/download it and see if you\'re OK with those files being uploaded to the file sharing service.\n\n
+• List of readable files (readable_list.txt): Control if the list of readable files (the ones that are bundled into ZIPs by the previous option) should be uploaded.\n\n
+• List of unreadable files (unreadable_list.txt): Control if the list of unreadable files (i.e. the ones that are on the device, but the app couldn\'t open them) should be uploaded.\n\n
+• List of excluded files (excluded_list.txt): Control if the list of excluded files (the ones that were skipped because they match the built-in exclusion list) should be uploaded.\n\n
+• Output of getprop (getprop.txt): Control if the output of the \"getprop\" command (i.e. Android system properties) should be uploaded.\n\n
+• Application logs (logs.txt): Control if logs (of this application) should be uploaded.
+</string>
+    <string name="help_features_title">Features</string>
+    <string name="help_features_description">• Cancellation scope: Hit \"Stop\" during the scan or upload phase to preserve and proceed with whatever has been already processed.\n\n
+• Pre-Flight verifications: Aborts uploads if available free space (in the \"cache\" storage) is too low to process the selected batches, or if zero upload configurations are selected.\n\n
+• View URL as QR code: Generates a QR code from the download URL.
+</string>
+    <string name="help_privacy_title">Privacy</string>
+    <string name="help_privacy_description">The application doesn\'t require or use any storage related permissions, thus the OS (Android) won\'t let it access any user data.\n\n
+As an additional safety measure there\'s a list of path prefixes to exclude any files from the ZIP bundles that might contain user data. In practise toggling the \"Ignore exclude list\" setting doesn\'t make any real difference (apart from adding this application\'s own data files from \"/data\" to the uploaded bundles).\n\n
+If use of the Tor network is enabled, make sure that you open/download the files only through Tor (or another anonymization solution), otherwise Tor\'s use will be rendered ineffective. Tor might not work with Filebin or it might be extremely (10+ times as) slow.\n\n
+The output of the \"getprop\" command (this can be included in the uploads too) might contain device specific identifiers, so if you upload this without encryption to a file sharing service, it might compromise your anonymity (against the file sharing service operators).</string>
+    <string name="help_exclusion_list_title">Exclusion list</string>
+    <string name="help_exclusion_list_description">If \"Ignore exclude list\" is disabled, file paths that match any of the following prefixes are excluded from the ZIP bundles. The \"/proc\" directory is not on this list (it\'s scraped for symbolic links pointing to files in other parts of the filesystem), but nothing from there is added to the uploaded ZIPs.</string>
+    <string name="help_discovery_roots_title">Discovery roots</string>
+    <string name="help_discovery_roots_description">Filesystem scanning is recursive and starts from the following roots:</string>
+    <string name="file_sharing_service">File sharing service</string>
+    <string name="error">Error</string>
+    <string name="fatal_error">Fatal Error</string>
+    <string name="reset">Reset</string>
+    <string name="custom_batch_size_error">Invalid batch size! Enter a value between %1$d and %2$d MB.</string>
+    <string name="invalid_proxy_error"><![CDATA[Invalid proxy specification: "%1$s"!\n
+Accepted formats are:\n
+• <port> (SOCKS proxy is implied with 127.0.0.1 as the IP address)\n
+• <ip_address_or_hostname>:<port> (SOCKS proxy is implied)\n
+• http://<ip_address_or_hostname>:<port>\n
+• socks://<ip_address_or_hostname>:<port>
+]]></string>
+    <string name="file_list_is_empty">File list is empty. Run filesystem scan first!</string>
+    <string name="pre_flight_check_failed">Pre-Flight check failed: at least one upload option must be enabled.</string>
+    <string name="traffic_doesnt_go_through_tor_error">You\'ve selected to use Tor, but for some reason requests don\'t go through the Tor network.</string>
+    <string name="partitioning_files_into_batches">Partitioning files into batches ...</string>
+    <string name="archiving_batch_of">Archiving batch %1$d of %2$d ...</string>
+    <string name="uploading_attempt_of">Uploading %1$s ...\n(attempt %2$d of %3$d)</string>
+    <string name="creating_readable_file_list">Creating readable file list ...</string>
+    <string name="creating_unreadable_file_list">Creating unreadable file list ...</string>
+    <string name="creating_excluded_file_list">Creating excluded file list ...</string>
+    <string name="creating_missing_list">Creating missing list ...</string>
+    <string name="creating_symlink_list">Creating symlink list ...</string>
+    <string name="executing_command">Executing %1$s command ...</string>
+    <string name="upload_success">Success! Uploaded %1$d files, %2$s in %3$.2f minutes.</string>
+    <string name="upload_partial_success">Partial upload! Successfully uploaded %1$d files out of %2$d (%3$s in %4$.2f minutes), %5$d upload(s) failed.</string>
+    <string name="upload_zero_success">All uploads seem to have failed (in %1$.2f minutes), but a download URL is still available.</string>
+    <string name="upload_error_empty_url">Uploaded %1$s in %2$.2f minutes, but no download URL is available.</string>
+    <string name="upload_crashed">Upload process crashed: %1$s</string>
+    <string name="insufficient_cache_space_required">Insufficient cache space. Required: %1$s.</string>
+    <string name="http_error_from">HTTP %1$d error: %2$s</string>
+    <string name="error_processing_response">Error processing response: %1$s</string>
+    <string name="http_redirect_from">HTTP %1$d redirect: %2$s</string>
+    <string name="tor_service_name">Tor Service (Android System Dumper)</string>
+    <string name="tor_is_running">Tor is running</string>
+    <string name="tor_notification_channel_name">Tor Network</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="custom_batch_size_mb_min">1</integer>
+    <integer name="custom_batch_size_mb_max">4000</integer>
+    <integer name="max_number_of_upload_retries">3</integer>
+</resources>
