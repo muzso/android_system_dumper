@@ -8,12 +8,12 @@ Android System Dumper is a vulnerability research helper tool designed to collec
 
 - **Filesystem scan**: Recursively scans the filesystem for readable files, processes the contents of well-known configuration files to discover additional file paths (e.g. notice.xml, SELinux context files, fstab files, modules.(dep|load), etc.).
 - **Privacy exclusions**: No Android storage permissions are declared or used, thus the OS itself prevents access to any user data. As an additional privacy measure, the filesystem scanner skips paths that match a predefined exclusion list (with known locations where user data might be stored).
-- **Secure archiving**: Packages collected data into encrypted (or optionally plain ZIP) archives using [Zip4j](https://github.com/srikanth-lingala/zip4j).
+- **Secure archiving**: Packages collected data into encrypted (or optionally plain) ZIP archives using [Zip4j](https://github.com/srikanth-lingala/zip4j).
 - **Anonymous uploading**: Integrated support for the **Tor** network (via the Guardian Project's [tor-android](https://github.com/guardianproject/tor-android) and [jtorctl](https://github.com/torproject/jtorctl)) allows anonymous upload of dumps to services like [Gofile](https://gofile.io/) and [Filebin](https://filebin.net/).
 - **IP privacy verification**:
   - If use of Tor is selected, a request to https://check.torproject.org/api/ip automatically verifies at the start of uploads that all requests are actually routed through the Tor network. Upload is canceled if this check fails.
   - The IP information checker screen allows you to "manually" verify that traffic is correctly routed through the Tor network (using third-party GeoIP services like [json.geoiplookup.io](https://json.geoiplookup.io/) and [ipwho.is](https://ipwho.is/)). Also, the "Is Tor Node" item shows the result of the https://check.torproject.org/api/ip request.
-- **QR code sharing**: Generates QR codes (using [ZXing](https://github.com/zxing/zxing)) for the download URL and the ZIP encryption passphrases (useful on devices where these would be difficult to export otherwise, such as devices running AAOS).
+- **QR code sharing**: Generates QR codes (using [ZXing](https://github.com/zxing/zxing)) for the download URL and the ZIP encryption passphrase (useful on devices where these would be difficult to export otherwise, such as devices running AAOS).
 - **Modular architecture**: Built with Clean Architecture principles (including Google's [architecture guidelines](https://developer.android.com/topic/architecture)) to ensure scalability and maintainability.
 - **Device support**: Built to be compatible with both standard Android devices and Android Automotive OS (AAOS).
 
@@ -46,7 +46,7 @@ To install the application:
 
 ### Principles & Structure
 
-The app follows (more or less) the **Clean Architecture** and **SOLID** principles, utilizing a multi-module Gradle setup:
+The app follows (more or less) **Clean Architecture** and [**SOLID**](https://en.wikipedia.org/wiki/SOLID) principles, utilizing a multi-module Gradle setup:
 
 - **`:domain`**: A pure Kotlin module containing business logic, entities, and repository interfaces. It is independent of the Android framework.
 - **`:app`**: An Android library module that contains the Jetpack Compose UI, ViewModels, and shared Android-specific implementations.
@@ -59,13 +59,13 @@ For now almost all of the app is contained in the `app` and `domain` modules, bu
 
 These are some of the major libraries used:
  
-- **Tor (Guardian Project)**: Provides anonymity for network uploads.
+- **Tor (Guardian Project)**: Provides anonymity for network requests.
 - **Zip4j**: Handles robust ZIP archive creation with encryption (including AES).
-- **ZXing**: Used for generating QR codes for sharing.
+- **ZXing**: Used to generate QR codes for sharing upload results.
 - **Hilt**: Dependency injection framework.
 - **Retrofit & OkHttp**: Networking stack for HTTP API calls.
 - **Moshi**: Modern JSON library for Kotlin/Java.
-- **Room**: Local persistence for settings and scan history.
+- **Room**: Local persistence for settings.
 
 ### Native Components (JNI)
 
@@ -87,7 +87,7 @@ The application is actively developed and manually tested in the following envir
 - Google Pixel phone (Android 17).
 - Volvo head units (AAOS 12 and above).
 
-Note: the Android Studio emulator (starting with [35.2.10](https://developer.android.com/studio/emulator_archive)) has a bug, conflict, or regression affecting Android 8 based emulator images, so regular testing is performed on Android 9 and later. 
+Note: the Android Studio emulator (starting with [35.2.10](https://developer.android.com/studio/emulator_archive)) has a bug, conflict, or regression affecting Android 8 based virtual devices, so regular testing is performed with an up-to-date emulator on Android 9 and later virtual devices. Before the initial release, the app has been tested with an older emulator version and an Android 8 based virtual device as well.
 
 ## Contributing
 
@@ -123,6 +123,7 @@ To build an APK from the command line:
 
 ```bash
 ./gradlew :mobile:assembleRelease
+
 ./gradlew :automotive:assembleRelease
 ```
 
@@ -133,9 +134,10 @@ To build an APK from the command line:
 Android System Dumper features comprehensive logging to both the standard Android System Log (Logcat) and a local file for persistent storage.
 
 - **System Logs**: View real-time logs via `adb logcat` (disabled for `release` builds via BuildConfig).
-- **File Logs**: Logs are stored in the application's cache directory at `context.cacheDir/logs.txt`.
-- **Log Export**: The application includes an option in the upload settings to include the `Application logs` in the system dump, allowing for remote debugging.
+- **File Logs**: Logs are stored in the application's cache directory at `cacheDir/logs.txt`.
+- **Log Export**: The application has an option in the upload settings to include the `Application logs` in the system dump, allowing for remote debugging.
 
 ## License
 
 This project is licensed under the **BSD-3-Clause** license. See the `LICENSE` file for more details.
+
