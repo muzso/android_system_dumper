@@ -3,12 +3,12 @@ package hu.muzso.android_system_dumper.usecase
 import hu.muzso.android_system_dumper.logging.FileLogger
 import hu.muzso.android_system_dumper.model.DomainResult
 import hu.muzso.android_system_dumper.model.UploadError
+import hu.muzso.android_system_dumper.network.upload.TerminalUploadException
+import hu.muzso.android_system_dumper.network.upload.TorChecker
+import hu.muzso.android_system_dumper.network.upload.UploadExecutor
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRetryPolicy
 import hu.muzso.android_system_dumper.platform.TorServiceController
-import hu.muzso.android_system_dumper.upload.network.TerminalUploadException
-import hu.muzso.android_system_dumper.upload.network.TorChecker
-import hu.muzso.android_system_dumper.upload.network.UploadExecutor
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
-import hu.muzso.android_system_dumper.upload.network.UploadRetryPolicy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import com.google.common.truth.Truth
 import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.UploadUiState
@@ -15,9 +16,10 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], qualifiers = "w1024dp-h2048dp")
+@Config(sdk = [34])
 class UploadPanelTest {
     @get:Rule
     val composeTestRule = createComposeRule()
@@ -30,20 +32,11 @@ class UploadPanelTest {
                     settingsUiState = SettingsUiState(),
                     uploadUiState = UploadUiState(),
                     filesCount = 0,
-                    onSetCustomBatchSizeMb = {},
                     onSetProxySpecification = {},
                     onSetShouldUseTor = {},
-                    onSetShouldUploadZips = {},
-                    onSetShouldUploadReadableList = {},
-                    onSetShouldUploadUnreadableList = {},
-                    onSetShouldUploadExcludedList = {},
-                    onSetShouldUploadMissingList = {},
-                    onSetShouldUploadSymlinkList = {},
-                    onSetShouldUploadGetprop = {},
-                    onSetShouldUploadAppLogs = {},
-                    onSetZipEncryption = {},
                     onSelectService = {},
                     onToggleUploading = {},
+                    onStartHttpServer = {},
                     formatBytes = { "" }
                 )
             }
@@ -62,20 +55,11 @@ class UploadPanelTest {
                         uploadStatusText = "Uploading batch 1"
                     ),
                     filesCount = 10,
-                    onSetCustomBatchSizeMb = {},
                     onSetProxySpecification = {},
                     onSetShouldUseTor = {},
-                    onSetShouldUploadZips = {},
-                    onSetShouldUploadReadableList = {},
-                    onSetShouldUploadUnreadableList = {},
-                    onSetShouldUploadExcludedList = {},
-                    onSetShouldUploadMissingList = {},
-                    onSetShouldUploadSymlinkList = {},
-                    onSetShouldUploadGetprop = {},
-                    onSetShouldUploadAppLogs = {},
-                    onSetZipEncryption = {},
                     onSelectService = {},
                     onToggleUploading = {},
+                    onStartHttpServer = {},
                     formatBytes = { "" }
                 )
             }
@@ -92,20 +76,11 @@ class UploadPanelTest {
                     settingsUiState = SettingsUiState(shouldUseTor = false),
                     uploadUiState = UploadUiState(),
                     filesCount = 10,
-                    onSetCustomBatchSizeMb = {},
                     onSetProxySpecification = {},
                     onSetShouldUseTor = { toggled.set(it) },
-                    onSetShouldUploadZips = {},
-                    onSetShouldUploadReadableList = {},
-                    onSetShouldUploadUnreadableList = {},
-                    onSetShouldUploadExcludedList = {},
-                    onSetShouldUploadMissingList = {},
-                    onSetShouldUploadSymlinkList = {},
-                    onSetShouldUploadGetprop = {},
-                    onSetShouldUploadAppLogs = {},
-                    onSetZipEncryption = {},
                     onSelectService = {},
                     onToggleUploading = {},
+                    onStartHttpServer = {},
                     formatBytes = { "" }
                 )
             }
@@ -115,85 +90,46 @@ class UploadPanelTest {
     }
 
     @Test
-    fun zipsToggleWorks() {
-        val toggled = AtomicBoolean(false)
+    fun proxyInputWorks() {
+        val proxy = AtomicReference("")
         composeTestRule.setContent {
-            UploadPanel(
-                settingsUiState = SettingsUiState(shouldUploadZips = false),
-                uploadUiState = UploadUiState(),
-                filesCount = 10,
-                onSetCustomBatchSizeMb = {},
-                onSetProxySpecification = {},
-                onSetShouldUseTor = {},
-                onSetShouldUploadZips = { toggled.set(it) },
-                onSetShouldUploadReadableList = {},
-                onSetShouldUploadUnreadableList = {},
-                onSetShouldUploadExcludedList = {},
-                onSetShouldUploadMissingList = {},
-                onSetShouldUploadSymlinkList = {},
-                onSetShouldUploadGetprop = {},
-                onSetShouldUploadAppLogs = {},
-                onSetZipEncryption = {},
-                onSelectService = {},
-                onToggleUploading = {},
-                formatBytes = { "" }
-            )
+            AndroidSystemDumperTheme {
+                UploadPanel(
+                    settingsUiState = SettingsUiState(proxySpecification = "", shouldUseTor = false),
+                    uploadUiState = UploadUiState(),
+                    filesCount = 10,
+                    onSetProxySpecification = { proxy.set(it) },
+                    onSetShouldUseTor = {},
+                    onSelectService = {},
+                    onToggleUploading = {},
+                    onStartHttpServer = {},
+                    formatBytes = { "" }
+                )
+            }
         }
-        
-        composeTestRule.onNodeWithTag("switch_upload_zips")
-            .performClick()
-        
-        Truth.assertThat(toggled.get()).isTrue()
+        composeTestRule.onNodeWithTag("proxy_input").performTextInput("127.0.0.1:8080")
+        Truth.assertThat(proxy.get()).isEqualTo("127.0.0.1:8080")
     }
 
     @Test
-    fun allUploadTogglesWork() {
-        val results = mutableMapOf<String, Boolean>()
+    fun httpServerButtonWorks() {
+        val clicked = AtomicBoolean(false)
         composeTestRule.setContent {
-            UploadPanel(
-                settingsUiState = SettingsUiState(
-                    shouldUploadReadableList = false,
-                    shouldUploadUnreadableList = false,
-                    shouldUploadExcludedList = false,
-                    shouldUploadMissingList = false,
-                    shouldUploadSymlinkList = false,
-                    shouldUploadGetprop = false,
-                    shouldUploadAppLogs = false
-                ),
-                uploadUiState = UploadUiState(),
-                filesCount = 10,
-                onSetCustomBatchSizeMb = {},
-                onSetProxySpecification = {},
-                onSetShouldUseTor = {},
-                onSetShouldUploadZips = {},
-                onSetShouldUploadReadableList = { results["readable"] = it },
-                onSetShouldUploadUnreadableList = { results["unreadable"] = it },
-                onSetShouldUploadExcludedList = { results["excluded"] = it },
-                onSetShouldUploadMissingList = { results["missing"] = it },
-                onSetShouldUploadSymlinkList = { results["symlink"] = it },
-                onSetShouldUploadGetprop = { results["getprop"] = it },
-                onSetShouldUploadAppLogs = { results["applogs"] = it },
-                onSetZipEncryption = {},
-                onSelectService = {},
-                onToggleUploading = {},
-                formatBytes = { "" }
-            )
+            AndroidSystemDumperTheme {
+                UploadPanel(
+                    settingsUiState = SettingsUiState(),
+                    uploadUiState = UploadUiState(),
+                    filesCount = 10,
+                    onSetProxySpecification = {},
+                    onSetShouldUseTor = {},
+                    onSelectService = {},
+                    onToggleUploading = {},
+                    onStartHttpServer = { clicked.set(true) },
+                    formatBytes = { "" }
+                )
+            }
         }
-
-        composeTestRule.onNodeWithTag("switch_upload_readble").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_unreadable").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_exluded").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_missing").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_symlink").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_getprop").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_applogs").performClick()
-
-        Truth.assertThat(results["readable"]).isTrue()
-        Truth.assertThat(results["unreadable"]).isTrue()
-        Truth.assertThat(results["excluded"]).isTrue()
-        Truth.assertThat(results["missing"]).isTrue()
-        Truth.assertThat(results["symlink"]).isTrue()
-        Truth.assertThat(results["getprop"]).isTrue()
-        Truth.assertThat(results["applogs"]).isTrue()
+        composeTestRule.onNodeWithTag("http_server_button").performClick()
+        Truth.assertThat(clicked.get()).isTrue()
     }
 }

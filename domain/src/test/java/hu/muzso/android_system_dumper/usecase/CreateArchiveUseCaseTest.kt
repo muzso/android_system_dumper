@@ -26,8 +26,8 @@ class CreateArchiveUseCaseTest {
             val files = listOf(ZipFileEntry("path", "name"))
             val outputFilePath = "out.zip"
             val encryption = ZipEncryption.AES
-            val password = "pass".toCharArray()
-            val options = ZipOptions(outputFilePath, encryption, password)
+            val passphrase = "pass".toCharArray()
+            val options = ZipOptions(outputFilePath, encryption, passphrase)
             coEvery { archiveRepository.createArchive(files, options, any()) } returns DomainResult.Success(outputFilePath)
 
             val result = useCase.execute(files, options, false)
@@ -40,9 +40,9 @@ class CreateArchiveUseCaseTest {
     }
 
     @Test
-    fun `generatePassword calls platformUtils`() {
+    fun `generatePassphrase calls platformUtils`() {
         every { platformUtils.generateSecureRandomString(16) } returns "random"
-        val result = useCase.generatePassword(16)
+        val result = useCase.generatePassphrase(16)
         assertThat(result).isEqualTo("random")
     }
 

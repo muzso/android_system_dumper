@@ -63,7 +63,7 @@ abstract class ZipCreatorContract {
         val options = ZipOptions(
             outputFilePath = outputFile,
             encryptionMethod = ZipEncryption.AES,
-            password = "password".toCharArray()
+            passphrase = "passphrase".toCharArray()
         )
 
         val result = zipCreator.create(files, options, false)

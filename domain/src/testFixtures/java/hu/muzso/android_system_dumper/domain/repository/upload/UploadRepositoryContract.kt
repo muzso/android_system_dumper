@@ -5,7 +5,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import hu.muzso.android_system_dumper.model.UploadError
 import hu.muzso.android_system_dumper.model.upload.UploadResult
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.nio.file.Files

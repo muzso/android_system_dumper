@@ -12,10 +12,11 @@ import hu.muzso.android_system_dumper.model.ScanResult
 import hu.muzso.android_system_dumper.model.ZipEncryption
 import hu.muzso.android_system_dumper.model.upload.UploadParameters
 import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
+import hu.muzso.android_system_dumper.network.DefaultArchiveGenerator
+import hu.muzso.android_system_dumper.network.upload.UploadProgressTracker
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.SystemInfo
-import hu.muzso.android_system_dumper.upload.network.UploadProgressTracker
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import hu.muzso.android_system_dumper.usecase.BatchFilesUseCase
 import hu.muzso.android_system_dumper.usecase.CleanupUseCase
 import hu.muzso.android_system_dumper.usecase.CreateArchiveUseCase
@@ -53,10 +54,12 @@ class LoggingRegressionTest {
 
     @Before
     fun setup() {
+        val archiveGenerator = DefaultArchiveGenerator(
+            fileSystem, clock, logger, systemInfo, batchFilesUseCase, createArchiveUseCase, cleanupUseCase
+        )
         useCase = UploadArchiveUseCase(
-            fileSystem, clock, logger, systemInfo, batchFilesUseCase,
-            createArchiveUseCase, uploadBatchUseCase, cleanupUseCase, resourceProvider,
-            progressTracker, dispatcherProvider
+            clock, logger, uploadBatchUseCase, cleanupUseCase, resourceProvider,
+            progressTracker, dispatcherProvider, archiveGenerator
         )
         every { progressTracker.totalUploadedBytes } returns MutableStateFlow(0L)
         every { clock.now() } returns Instant.now()
@@ -138,6 +141,7 @@ class LoggingRegressionTest {
         shouldUploadAppLogs = false,
         zipEncryption = ZipEncryption.NONE,
         selectedService = uploadRepository,
-        maxBatches = 0
+        maxBatches = 0,
+        useDoubleZipping = false
     )
 }

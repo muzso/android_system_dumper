@@ -2,7 +2,9 @@ package hu.muzso.android_system_dumper.common
 
 import org.apache.commons.validator.routines.DomainValidator
 import org.apache.commons.validator.routines.InetAddressValidator
+import java.net.Inet4Address
 import java.net.InetSocketAddress
+import java.net.NetworkInterface
 import java.net.Proxy
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -108,4 +110,26 @@ class DefaultNetworkUtils @Inject constructor() : NetworkUtils {
             511 -> "Network Authentication Required"
             else -> "Unknown"
         }
+
+    override fun getLocalIPv4Addresses(): List<String> {
+        val ips = mutableListOf<String>()
+        try {
+            val interfaces = NetworkInterface.getNetworkInterfaces()
+            while (interfaces.hasMoreElements()) {
+                val networkInterface = interfaces.nextElement()
+                if (!networkInterface.isUp || networkInterface.isLoopback) continue
+
+                val addresses = networkInterface.inetAddresses
+                while (addresses.hasMoreElements()) {
+                    val address = addresses.nextElement()
+                    if (address is Inet4Address && !address.isLoopbackAddress) {
+                        ips.add(address.hostAddress ?: "")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // Log or handle error if needed, for now return what we have
+        }
+        return ips.filter { it.isNotEmpty() }.distinct().sorted()
+    }
 }

@@ -1,6 +1,6 @@
 # Android System Dumper
 
-Android System Dumper is a vulnerability research helper tool designed to collect and securely share system-level parts of the filesystem on Android devices. It is useful on platforms where neither ADB nor root access is available.
+This is a vulnerability research helper tool designed to collect and securely share system-level parts of the filesystem of Android devices. It is useful on platforms where neither ADB nor root access is available. It doesn't use any storage related permissions, so it only finds files that literally **any** app (e.g. in the Play Store) could. No manufacturer can argue that this app does any "hacking" or illegal (without admitting their own absolute incompetence as far as cybersecurity is involved), thus it's safe to use on any device without the fear of voiding any warranties. Of course this is not a legal statement :), just my personal opinion.
 
 ![screenshot](site/screenshot.png)
 
@@ -9,13 +9,38 @@ Android System Dumper is a vulnerability research helper tool designed to collec
 - **Filesystem scan**: Recursively scans the filesystem for readable files, processes the contents of well-known configuration files to discover additional file paths (e.g. notice.xml, SELinux context files, fstab files, modules.(dep|load), etc.).
 - **Privacy exclusions**: No Android storage permissions are declared or used, thus the OS itself prevents access to any user data. As an additional privacy measure, the filesystem scanner skips paths that match a predefined exclusion list (with known locations where user data might be stored).
 - **Secure archiving**: Packages collected data into encrypted (or optionally plain) ZIP archives using [Zip4j](https://github.com/srikanth-lingala/zip4j).
-- **Anonymous uploading**: Integrated support for the **Tor** network (via the Guardian Project's [tor-android](https://github.com/guardianproject/tor-android) and [jtorctl](https://github.com/torproject/jtorctl)) allows anonymous upload of dumps to services like [Gofile](https://gofile.io/) and [Filebin](https://filebin.net/).
+- **File transfer**: Both uploads (via internet connection) and downloads (via local network) are supported.
+- **Anonymous uploading**: Integrated support for the **Tor** network (through the Guardian Project's [tor-android](https://github.com/guardianproject/tor-android) and [jtorctl](https://github.com/torproject/jtorctl)) allows anonymous upload of dumps to services like [Gofile](https://gofile.io/) and [Filebin](https://filebin.net/).
 - **IP privacy verification**:
-  - If use of Tor is selected, a request to https://check.torproject.org/api/ip automatically verifies at the start of uploads that all requests are actually routed through the Tor network. Upload is canceled if this check fails.
+  - If "Use Tor network" is selected, a request to https://check.torproject.org/api/ip automatically verifies at the start of uploads that all requests are actually routed through the Tor network. Upload is canceled if this check fails.
   - The IP information checker screen allows you to "manually" verify that traffic is correctly routed through the Tor network (using third-party GeoIP services like [json.geoiplookup.io](https://json.geoiplookup.io/) and [ipwho.is](https://ipwho.is/)). Also, the "Is Tor Node" item shows the result of the https://check.torproject.org/api/ip request.
+- **HTTP Server**: for the (direct) device <-> device file transfers an HTTP Server is started and the URL (to connect to) is presented via QR code.
 - **QR code sharing**: Generates QR codes (using [ZXing](https://github.com/zxing/zxing)) for the download URL and the ZIP encryption passphrase (useful on devices where these would be difficult to export otherwise, such as devices running AAOS).
 - **Modular architecture**: Built with Clean Architecture principles (including Google's [architecture guidelines](https://developer.android.com/topic/architecture)) to ensure scalability and maintainability.
 - **Device support**: Built to be compatible with both standard Android devices and Android Automotive OS (AAOS).
+
+## Usage
+
+### Step#1: Scans the filesystem
+
+The app has a list of built-in paths that it uses as the roots for the recursive filesystem scan. It also has a list of paths (well-known to contain user data) to exclude from the scan in case access to any of the discovered paths are for some reason is not prevented by the OS itself.
+
+Some files (mostly configuration files found during the recursive scan) are analyzed to gather paths that the recursive scan itself could not find.
+
+### Step#2: Packaging parameters
+
+The collected files are packaged into ZIP archives. The app provides lots of options to control the ZIP creation parameters (encryption, total file size for ZIP inputs, etc.) and the contents of the ZIPs.
+
+### Step#3: File transfer
+
+The app provides two ways to get the ZIP archives off the device:
+
+- Upload: This uploads the ZIPs to a public (temporary) file sharing service. Both supported services host the uploaded files only for a short time period.
+- Download: The app starts an HTTP server which serves a self-contained HTML with the ZIP index and a provides a "Download All" button for convenience. It's the user's task to set up the connection between the two devices (the one running this app and the other that downloads the files, e.g. a phone running a web browser). Usually this can be done by creating a Wi-Fi hotspot on the downloading device (phone) and connecting to this hotpost from the device (car head unit, TV, etc.) that runs this app.
+
+The default settings of the app provide reasonable privacy for the upload scenario. If you want maximum privacy, enable the "Use double-zipping" option so the file sharing service cannot look into the ZIPs and see the file listings (paths, file names).
+
+Note: double-zipping means that collected files are first packaged into a plain (i.e. not encrypted) ZIP with compression, then this ZIP is packaged into another ZIP with encryption and no compression. Based on my tests double-zipping is not slower in upload scenarios and the difference in running time for downloads is negligible (e.g. 62s vs. 57s).
 
 ## Prerequisites
 
@@ -38,9 +63,14 @@ Android System Dumper is a vulnerability research helper tool designed to collec
 To install the application:
 
 - **Sideloading**: Obtain the APK from a trusted source (this GitHub project or compile it yourself) and sideload it using your device's file manager or any other available sideloading mechanism.
-- **Google Play Internal Testing**: If you are part of an authorized testing group, you can install the app via the Google Play Store's internal testing track.
+- **Google Play Internal Testing**: If you are part of an authorized Internal Testing group, you can install the app via the Google Play Store's Internal Testing track.
   - You can reach out to me via a GitHub issue and I might be able to include you in my Internal Testing group (if I still have free slots available).
-  - Register a Google developer account, compile the application (with a unique `applicationId`) into an AAB, publish it on Google Play using the Internal Testing track, add the target Google account to the tester group, then install the app via the invitation.
+  - Set up your own Internal Testing track:
+    - Register a Google developer account.
+    - Compile the application with a unique `applicationId` into an AAB.
+    - Publish it on Google Play using the Internal Testing track.
+    - Add the target Google account to the tester group.
+    - Install the app via the invitation.
 
 ## Development
 
@@ -140,4 +170,3 @@ Android System Dumper features comprehensive logging to both the standard Androi
 ## License
 
 This project is licensed under the **BSD-3-Clause** license. See the `LICENSE` file for more details.
-

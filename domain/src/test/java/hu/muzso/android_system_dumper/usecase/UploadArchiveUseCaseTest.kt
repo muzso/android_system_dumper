@@ -14,10 +14,11 @@ import hu.muzso.android_system_dumper.model.ZipEncryption
 import hu.muzso.android_system_dumper.model.ZipError
 import hu.muzso.android_system_dumper.model.upload.UploadParameters
 import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
+import hu.muzso.android_system_dumper.network.DefaultArchiveGenerator
+import hu.muzso.android_system_dumper.network.upload.UploadProgressTracker
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.SystemInfo
-import hu.muzso.android_system_dumper.upload.network.UploadProgressTracker
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -55,10 +56,12 @@ class UploadArchiveUseCaseTest {
 
     @Before
     fun setup() {
+        val archiveGenerator = DefaultArchiveGenerator(
+            fileSystem, clock, logger, systemInfo, batchFilesUseCase, createArchiveUseCase, cleanupUseCase
+        )
         useCase = UploadArchiveUseCase(
-            fileSystem, clock, logger, systemInfo, batchFilesUseCase,
-            createArchiveUseCase, uploadBatchUseCase, cleanupUseCase, resourceProvider,
-            progressTracker, dispatcherProvider
+            clock, logger, uploadBatchUseCase, cleanupUseCase, resourceProvider,
+            progressTracker, dispatcherProvider, archiveGenerator
         )
         every { progressTracker.totalUploadedBytes } returns MutableStateFlow(0L)
         coEvery { progressTracker.reset() } just runs
@@ -74,6 +77,7 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
+            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(0))
             assertThat(awaitItem()).isInstanceOf(UploadWorkflowStatus.Error::class.java)
             awaitComplete()
         }
@@ -95,7 +99,7 @@ class UploadArchiveUseCaseTest {
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(1))
-            // Creating log list steps...
+            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.SuccessfulUploads(1))
             assertThat(awaitItem()).isInstanceOf(UploadWorkflowStatus.Success::class.java)
             awaitComplete()
@@ -120,6 +124,7 @@ class UploadArchiveUseCaseTest {
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(1))
+            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.SuccessfulUploads(1))
             val success = awaitItem() as UploadWorkflowStatus.Success
             assertThat(success.runtimeSeconds).isEqualTo(5L)
@@ -139,7 +144,6 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(2))
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.ArchivingBatch(1, 2))
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.SuccessfulUploads(1))
@@ -169,7 +173,6 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(1))
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.ArchivingBatch(1, 1))
             val error = awaitItem() as UploadWorkflowStatus.Error
@@ -193,7 +196,6 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(1))
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.ArchivingBatch(1, 1))
             assertThat(awaitItem()).isInstanceOf(UploadWorkflowStatus.Error::class.java)
@@ -223,15 +225,13 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(1))
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(6))
-
-            repeat(5) { i ->
-                assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.ArchivingBatch(i + 1, 5))
-                assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.SuccessfulUploads(i + 1))
+            for (i in 1..5) {
+                assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.ArchivingBatch(i, 5))
+                assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.SuccessfulUploads(i))
             }
             
+            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.SuccessfulUploads(6))
             assertThat(awaitItem()).isInstanceOf(UploadWorkflowStatus.Success::class.java)
             awaitComplete()
@@ -253,7 +253,6 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(2))
             
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.ArchivingBatch(1, 2))
@@ -296,12 +295,7 @@ class UploadArchiveUseCaseTest {
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(1))
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.CreatingReadableList)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.CreatingUnreadableList)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.CreatingExcludedList)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.CreatingMissingList)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.CreatingSymlinkList)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.ExecutingCommand("getprop"))
+            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.SuccessfulUploads(1))
             assertThat(awaitItem()).isInstanceOf(UploadWorkflowStatus.Success::class.java)
             awaitComplete()
@@ -332,7 +326,6 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(0))
             
             val error = awaitItem() as UploadWorkflowStatus.Error
@@ -351,7 +344,6 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
-            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(1))
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.ArchivingBatch(1, 1))
             
@@ -369,6 +361,7 @@ class UploadArchiveUseCaseTest {
 
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
+            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(0))
             val error = awaitItem() as UploadWorkflowStatus.Error
             assertThat(error.error).isInstanceOf(UploadError.MissingDownloadURL::class.java)
             awaitComplete()
@@ -387,6 +380,7 @@ class UploadArchiveUseCaseTest {
         useCase.execute(parameters, scanResult).test {
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.Preparing)
             assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.TotalPlannedUploads(1))
+            assertThat(awaitItem()).isEqualTo(UploadWorkflowStatus.PartitioningBatches)
             val error = awaitItem() as UploadWorkflowStatus.Error
             assertThat(error.error).isInstanceOf(UploadError.ZeroSuccessfulUploads::class.java)
             awaitComplete()
@@ -407,6 +401,7 @@ class UploadArchiveUseCaseTest {
         shouldUploadAppLogs = false,
         zipEncryption = ZipEncryption.NONE,
         selectedService = uploadRepository,
-        maxBatches = 0
+        maxBatches = 0,
+        useDoubleZipping = false
     )
 }

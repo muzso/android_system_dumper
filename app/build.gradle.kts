@@ -46,10 +46,12 @@ android {
       isShrinkResources = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       buildConfigField("int", "BATCH_LIMIT", "0")
+      buildConfigField("int", "FILE_COUNT_LIMIT", "0")
       buildConfigField("boolean", "LOG_TO_SYSTEM", "false")
     }
     debug {
       buildConfigField("int", "BATCH_LIMIT", "1")
+      buildConfigField("int", "FILE_COUNT_LIMIT", "1000")
       buildConfigField("boolean", "LOG_TO_SYSTEM", "true")
     }
   }
@@ -163,6 +165,9 @@ dependencies {
   implementation(libs.retrofit)
   implementation(libs.tor.android)
   implementation(libs.zxing)
+  implementation(libs.ktor.server.core)
+  implementation(libs.ktor.server.netty)
+  implementation(libs.ktor.server.html.builder)
 
   ksp(libs.androidx.room.compiler)
   ksp(libs.hilt.compiler)
@@ -178,6 +183,7 @@ dependencies {
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.junit.vintage.engine)
   testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.ktor.server.test.host)
   testImplementation(libs.mockk)
   testImplementation(libs.okhttp.mockwebserver)
   testImplementation(libs.robolectric)

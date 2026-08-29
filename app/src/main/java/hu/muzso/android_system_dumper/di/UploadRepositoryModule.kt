@@ -6,19 +6,19 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
 import dagger.multibindings.StringKey
-import hu.muzso.android_system_dumper.upload.network.DefaultUploadExecutor
-import hu.muzso.android_system_dumper.upload.network.DefaultUploadProgressTracker
-import hu.muzso.android_system_dumper.upload.network.DefaultUploadRepositoryManager
-import hu.muzso.android_system_dumper.upload.network.DefaultUploadRetryPolicy
-import hu.muzso.android_system_dumper.upload.network.DefaultUploadSelector
-import hu.muzso.android_system_dumper.upload.network.FilebinUploadRepository
-import hu.muzso.android_system_dumper.upload.network.GofileUploadRepository
-import hu.muzso.android_system_dumper.upload.network.UploadExecutor
-import hu.muzso.android_system_dumper.upload.network.UploadProgressTracker
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
-import hu.muzso.android_system_dumper.upload.network.UploadRepositoryManager
-import hu.muzso.android_system_dumper.upload.network.UploadRetryPolicy
-import hu.muzso.android_system_dumper.upload.network.UploadSelector
+import hu.muzso.android_system_dumper.network.upload.DefaultUploadExecutor
+import hu.muzso.android_system_dumper.network.upload.DefaultUploadProgressTracker
+import hu.muzso.android_system_dumper.network.upload.DefaultUploadRepositoryManager
+import hu.muzso.android_system_dumper.network.upload.DefaultUploadRetryPolicy
+import hu.muzso.android_system_dumper.network.upload.DefaultUploadSelector
+import hu.muzso.android_system_dumper.network.upload.FilebinUploadRepository
+import hu.muzso.android_system_dumper.network.upload.GofileUploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadExecutor
+import hu.muzso.android_system_dumper.network.upload.UploadProgressTracker
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRepositoryManager
+import hu.muzso.android_system_dumper.network.upload.UploadRetryPolicy
+import hu.muzso.android_system_dumper.network.upload.UploadSelector
 import javax.inject.Singleton
 
 @Module

@@ -68,14 +68,14 @@ class Zip4jZipCreatorTest {
     fun `create creates an encrypted zip file`() = runTest(testDispatcher) {
         val file1 = tempDir.resolve("file1.txt")
         file1.writeText("sensitive content")
-        val password = "password123".toCharArray()
+        val passphrase = "passphrase123".toCharArray()
 
         val outputFile = tempDir.resolve("encrypted.zip").toFile()
         val files = listOf(ZipFileEntry(file1.toString(), "file1.txt"))
         val options = ZipOptions(
             outputFilePath = outputFile.absolutePath,
             encryptionMethod = ZipEncryption.AES,
-            password = password
+            passphrase = passphrase
         )
 
         zipCreator.create(files, options, false)
@@ -85,7 +85,7 @@ class Zip4jZipCreatorTest {
         val zipFile = ZipFile(outputFile)
         assertThat(zipFile.isEncrypted).isTrue()
         
-        zipFile.setPassword(password)
+        zipFile.setPassword(passphrase)
         val extractedFile = tempDir.resolve("extracted.txt").toFile()
         zipFile.extractFile("file1.txt", tempDir.toString(), "extracted.txt")
         
@@ -142,7 +142,7 @@ class Zip4jZipCreatorTest {
         val options = ZipOptions(
             outputFilePath = outputFile.absolutePath,
             encryptionMethod = ZipEncryption.STANDARD,
-            password = "pass".toCharArray()
+            passphrase = "pass".toCharArray()
         )
 
         zipCreator.create(listOf(ZipFileEntry(file1.toString(), "f.txt")), options, false)
@@ -219,5 +219,49 @@ class Zip4jZipCreatorTest {
 
         assertThat(result).isInstanceOf(DomainResult.Error::class.java)
         assertThat(((result as DomainResult.Error).error as ZipError.Zip4jError).message).isEqualTo("Random Zip Fail")
+    }
+
+    @Test
+    fun `create with double zipping creates a valid nested zip`() = runTest(testDispatcher) {
+        val file1 = tempDir.resolve("file1.txt")
+        file1.writeText("content1")
+        val passphrase = "passphrase123".toCharArray()
+
+        val outputFile = tempDir.resolve("double.zip").toFile()
+        val files = listOf(ZipFileEntry(file1.toString(), "inner_file.txt"))
+        val options = ZipOptions(
+            outputFilePath = outputFile.absolutePath,
+            encryptionMethod = ZipEncryption.AES,
+            passphrase = passphrase,
+            useDoubleZipping = true
+        )
+
+        zipCreator.create(files, options, false)
+
+        assertThat(outputFile.exists()).isTrue()
+
+        // Verify outer ZIP
+        ZipFile(outputFile).use { outerZip ->
+            assertThat(outerZip.isEncrypted).isTrue()
+            outerZip.setPassword(passphrase)
+            assertThat(outerZip.fileHeaders.map { it.fileName }).containsExactly("double.plain.zip")
+
+            // Extract inner ZIP
+            outerZip.extractFile("double.plain.zip", tempDir.toString())
+        }
+
+        val innerFile = tempDir.resolve("double.plain.zip").toFile()
+        assertThat(innerFile.exists()).isTrue()
+
+        // Verify inner ZIP
+        ZipFile(innerFile).use { innerZip ->
+            assertThat(innerZip.isEncrypted).isFalse()
+            assertThat(innerZip.fileHeaders.map { it.fileName }).containsExactly("inner_file.txt")
+
+            // Extract file from inner ZIP
+            val extractedFile = tempDir.resolve("extracted_inner.txt").toFile()
+            innerZip.extractFile("inner_file.txt", tempDir.toString(), "extracted_inner.txt")
+            assertThat(extractedFile.readText()).isEqualTo("content1")
+        }
     }
 }

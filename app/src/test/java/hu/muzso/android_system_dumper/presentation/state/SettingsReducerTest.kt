@@ -9,7 +9,7 @@ class SettingsReducerTest {
     fun `AppStateChanged updates AppState`() {
         val states = listOf(
             AppState.MainScreen,
-            AppState.QrCodeScreen("text"),
+            AppState.QrCodeScreen("text", AppState.MainScreen),
             AppState.HelpScreen
         )
 

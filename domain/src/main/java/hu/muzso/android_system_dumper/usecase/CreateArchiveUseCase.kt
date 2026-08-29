@@ -21,7 +21,7 @@ class CreateArchiveUseCase @Inject constructor(
         return archiveRepository.createArchive(files, options, readIntoMemory)
     }
 
-    fun generatePassword(length: Int): String {
+    fun generatePassphrase(length: Int): String {
         return platformUtils.generateSecureRandomString(length)
     }
 

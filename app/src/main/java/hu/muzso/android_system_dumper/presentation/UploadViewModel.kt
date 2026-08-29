@@ -13,13 +13,13 @@ import hu.muzso.android_system_dumper.model.UploadError
 import hu.muzso.android_system_dumper.model.ZipEncryption
 import hu.muzso.android_system_dumper.model.upload.UploadParameters
 import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.UiMessenger
 import hu.muzso.android_system_dumper.presentation.state.UploadResult
 import hu.muzso.android_system_dumper.presentation.state.UploadUiState
 import hu.muzso.android_system_dumper.presentation.state.reduce
 import hu.muzso.android_system_dumper.scan.ScanRepository
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import hu.muzso.android_system_dumper.usecase.GenerateQrUseCase
 import hu.muzso.android_system_dumper.usecase.UploadArchiveUseCase
 import hu.muzso.android_system_dumper.usecase.ValidateUploadUseCase
@@ -62,7 +62,7 @@ class UploadViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         UploadUiState(
             downloadUrl = savedStateHandle.get<String>("downloadUrl"),
-            generatedPassword = savedStateHandle.get<String>("generatedPassword"),
+            generatedPassphrase = savedStateHandle.get<String>("generatedPassphrase"),
             uploadStatusText = savedStateHandle.get<String>("uploadStatusText") ?: ""
         )
     )
@@ -79,7 +79,7 @@ class UploadViewModel @Inject constructor(
         _uiState.update { 
             val newState = transform(it)
             savedStateHandle["downloadUrl"] = newState.downloadUrl
-            savedStateHandle["generatedPassword"] = newState.generatedPassword
+            savedStateHandle["generatedPassphrase"] = newState.generatedPassphrase
             savedStateHandle["uploadStatusText"] = newState.uploadStatusText
             newState
         }
@@ -139,6 +139,7 @@ class UploadViewModel @Inject constructor(
             shouldUploadGetprop = settings.shouldUploadGetprop,
             shouldUploadAppLogs = settings.shouldUploadAppLogs,
             zipEncryption = settings.zipEncryption,
+            useDoubleZipping = settings.useDoubleZipping,
             selectedService = settings.selectedService,
             maxBatches = BuildConfig.BATCH_LIMIT
         )
@@ -241,7 +242,7 @@ class UploadViewModel @Inject constructor(
                         updateState { reduce(it, UploadResult.UploadFinished(
                             downloadUrl = status.downloadUrl,
                             uploadedZips = status.uploadedZips,
-                            password = status.password,
+                            passphrase = status.passphrase,
                             statusText = resourceProvider.getString(R.string.upload_success, status.uploadedZips.toLong(), platformUtils.formatBytes(status.totalBytes), status.runtimeSeconds / 60.0)
                         )) }
                     }
@@ -249,7 +250,7 @@ class UploadViewModel @Inject constructor(
                         updateState { reduce(it, UploadResult.UploadFinished(
                             downloadUrl = status.downloadUrl,
                             uploadedZips = status.uploadedZips,
-                            password = status.password,
+                            passphrase = status.passphrase,
                             statusText = resourceProvider.getString(
                                 R.string.upload_partial_success,
                                 status.uploadedZips,
@@ -326,6 +327,7 @@ class UploadViewModel @Inject constructor(
         val shouldUploadGetprop: Boolean,
         val shouldUploadAppLogs: Boolean,
         val zipEncryption: ZipEncryption,
+        val useDoubleZipping: Boolean,
         val selectedService: UploadRepository,
         val onFatalError: (String?) -> Unit
     )

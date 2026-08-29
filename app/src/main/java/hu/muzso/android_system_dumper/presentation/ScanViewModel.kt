@@ -3,6 +3,7 @@ package hu.muzso.android_system_dumper.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.muzso.android_system_dumper.BuildConfig
 import hu.muzso.android_system_dumper.model.ScanAction
 import hu.muzso.android_system_dumper.model.ScanState
 import hu.muzso.android_system_dumper.model.ScanningResult
@@ -81,7 +82,7 @@ class ScanViewModel @Inject constructor(
         _uiState.update { reduce(it, ScanningResult.ScanStarted) }
         
         scanJob = viewModelScope.launch {
-            scanSystemUseCase.execute(ignoreExcludeList)
+            scanSystemUseCase.execute(ignoreExcludeList, BuildConfig.FILE_COUNT_LIMIT)
                 .collect { status ->
                     _uiState.update { reduce(it, ScanningResult.StatusChanged(status)) }
                 }

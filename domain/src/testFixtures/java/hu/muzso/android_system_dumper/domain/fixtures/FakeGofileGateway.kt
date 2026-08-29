@@ -1,8 +1,8 @@
 package hu.muzso.android_system_dumper.domain.fixtures
 
-import hu.muzso.android_system_dumper.upload.network.gateway.GatewayResult
-import hu.muzso.android_system_dumper.upload.network.gateway.GofileGateway
-import hu.muzso.android_system_dumper.upload.network.gateway.GofileUploadDomainModel
+import hu.muzso.android_system_dumper.network.upload.gateway.GatewayResult
+import hu.muzso.android_system_dumper.network.upload.gateway.GofileGateway
+import hu.muzso.android_system_dumper.network.upload.gateway.GofileUploadDomainModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

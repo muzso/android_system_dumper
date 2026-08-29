@@ -17,7 +17,7 @@ class ScanSystemUseCase @Inject constructor(
 
     fun getSeedPaths(): List<String> = getSeedPathsUseCase.execute()
 
-    fun execute(ignoreExcludeList: Boolean): Flow<ScanStatus> = startScanUseCase.execute(ignoreExcludeList)
+    fun execute(ignoreExcludeList: Boolean, fileCountLimit: Int = 0): Flow<ScanStatus> = startScanUseCase.execute(ignoreExcludeList, fileCountLimit)
     suspend fun cancel(job: Job?) = cancelScanUseCase.execute(job)
     fun clearResults() = clearScanResultsUseCase.execute()
 }

@@ -24,6 +24,7 @@ fun SettingsSwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     testTag: String,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -33,6 +34,7 @@ fun SettingsSwitchRow(
             .toggleable(
                 value = checked,
                 onValueChange = onCheckedChange,
+                enabled = enabled,
                 role = Role.Switch
             )
             .padding(vertical = 4.dp),
@@ -41,12 +43,14 @@ fun SettingsSwitchRow(
     ) {
         Switch(
             checked = checked,
-            onCheckedChange = null
+            onCheckedChange = null,
+            enabled = enabled
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
             modifier = Modifier.weight(1f)
         )
     }

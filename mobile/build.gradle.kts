@@ -13,8 +13,8 @@ android {
     applicationId = "hu.muzso.android_system_dumper.mobile"
     minSdk = 26
     targetSdk = 37
-    versionCode = 2
-    versionName = "1.0.1"
+    versionCode = 3
+    versionName = "1.1.0"
 
     testInstrumentationRunner = "hu.muzso.android_system_dumper.HiltTestRunner"
   }
@@ -34,6 +34,12 @@ android {
   }
   buildFeatures {
     buildConfig = true
+  }
+  packaging {
+    resources {
+      excludes += "/META-INF/INDEX.LIST"
+      excludes += "/META-INF/io.netty.versions.properties"
+    }
   }
 }
 

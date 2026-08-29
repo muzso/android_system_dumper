@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface ScanRepository {
     val scanResult: StateFlow<ScanResult>
     val scanUpdate: StateFlow<ScanUpdate>
-    fun scan(ignoreExcludeList: Boolean): Flow<ScanStatus>
+    fun scan(ignoreExcludeList: Boolean, fileCountLimit: Int = 0): Flow<ScanStatus>
     fun updateResult(result: ScanResult)
     fun updateProgress(update: ScanUpdate, result: ScanResult? = null)
     fun clear()

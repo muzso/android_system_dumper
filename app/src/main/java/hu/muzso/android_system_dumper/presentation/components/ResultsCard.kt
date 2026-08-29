@@ -52,7 +52,7 @@ private val jetbrainsMonoFontFamily = FontFamily(
  * This card shows information about successful uploads, including the download URL,
  * total bytes uploaded, and the time taken. It also provides actions to copy the URL,
  * open it in a browser, or generate a QR code for easy sharing. If the upload is
- * encrypted, it displays the generated password.
+ * encrypted, it displays the generated passphrase.
  *
  * @param uploadUiState The current upload UI state.
  * @param shouldUseTor Whether Tor was used for the upload (affects URL formatting).
@@ -90,14 +90,14 @@ fun ResultsCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.step_3_download_url_list_is_complete),
+                    text = stringResource(R.string.step_4_finished),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 uploadUiState.downloadUrl?.let { uri ->
                     Text(
-                        text = stringResource(R.string.the_list_of_download_urls_is_available_at),
+                        text = stringResource(R.string.files_can_be_downloaded),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -154,10 +154,10 @@ fun ResultsCard(
                             )
                         }
                     }
-                    uploadUiState.generatedPassword?.let { password ->
+                    uploadUiState.generatedPassphrase?.let { passphrase ->
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "ZIP password:",
+                            text = stringResource(R.string.zip_passphrase) + ":",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -173,25 +173,27 @@ fun ResultsCard(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = password,
+                                text = passphrase,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontFamily = jetbrainsMonoFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.weight(1f)
                             )
+                            val zipPasspraseLabel = stringResource(R.string.zip_passphrase)
+                            val copyButtonText = stringResource(R.string.copy_passphrase_to_clipboard)
                             IconButton(
-                                onClick = { onCopyText("ZIP Password", password) }
+                                onClick = { onCopyText(zipPasspraseLabel, passphrase) }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copy password to clipboard",
+                                    contentDescription = copyButtonText,
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             IconButton(
-                                onClick = { onNavigateToQrCode(password) }
+                                onClick = { onNavigateToQrCode(passphrase) }
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.QrCode,
@@ -214,7 +216,7 @@ fun ResultsCardPreview() {
         ResultsCard(
             uploadUiState = UploadUiState(
                 downloadUrl = "https://example.com/download",
-                generatedPassword = "sample_password"
+                generatedPassphrase = "sample_passphrase"
             ),
             shouldUseTor = false,
             onCopyText = { _, _ -> },

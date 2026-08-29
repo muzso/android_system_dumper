@@ -1,7 +1,7 @@
 package hu.muzso.android_system_dumper.model.upload
 
 import hu.muzso.android_system_dumper.model.ZipEncryption
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 
 data class UploadParameters(
     val customBatchSizeMb: String,
@@ -16,6 +16,7 @@ data class UploadParameters(
     val shouldUploadGetprop: Boolean,
     val shouldUploadAppLogs: Boolean,
     val zipEncryption: ZipEncryption,
+    val useDoubleZipping: Boolean,
     val selectedService: UploadRepository,
     val maxBatches: Int
 )

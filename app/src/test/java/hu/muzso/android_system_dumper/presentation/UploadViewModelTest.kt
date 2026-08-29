@@ -13,9 +13,9 @@ import hu.muzso.android_system_dumper.model.ScanResult
 import hu.muzso.android_system_dumper.model.UploadError
 import hu.muzso.android_system_dumper.model.ZipEncryption
 import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.UiMessenger
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import hu.muzso.android_system_dumper.usecase.GenerateQrUseCase
 import hu.muzso.android_system_dumper.usecase.UploadArchiveUseCase
 import hu.muzso.android_system_dumper.usecase.ValidateUploadUseCase
@@ -72,7 +72,7 @@ class UploadViewModelTest {
     fun `ResetResults intent resets the UI state`() = runTest {
         val savedStateHandle = SavedStateHandle(mapOf(
             "downloadUrl" to "https://test.com",
-            "generatedPassword" to "secret"
+            "generatedPassphrase" to "secret"
         ))
         createViewModel(savedStateHandle)
         assertThat(viewModel.uiState.value.downloadUrl).isEqualTo("https://test.com")
@@ -81,7 +81,7 @@ class UploadViewModelTest {
         testScheduler.runCurrent()
 
         assertThat(viewModel.uiState.value.downloadUrl).isNull()
-        assertThat(viewModel.uiState.value.generatedPassword).isNull()
+        assertThat(viewModel.uiState.value.generatedPassphrase).isNull()
     }
 
     @Test
@@ -130,6 +130,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = { fatalErrorReceived = it }
         )
@@ -160,6 +161,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = mockk(relaxed = true),
             onFatalError = {}
         )
@@ -186,7 +188,7 @@ class UploadViewModelTest {
             failedZips = 1,
             totalBytes = 50L,
             runtimeSeconds = 30L,
-            password = "pwd"
+            passphrase = "pwd"
         ))
         every { uploadArchiveUseCase.execute(any(), any()) } returns statusFlow
 
@@ -203,6 +205,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = {}
         )
@@ -240,6 +243,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = {}
         )
@@ -278,14 +282,14 @@ class UploadViewModelTest {
     fun `SavedStateHandle restores state`() = runTest {
         val savedStateHandle = SavedStateHandle(mapOf(
             "downloadUrl" to "https://test.com",
-            "generatedPassword" to "secret",
+            "generatedPassphrase" to "secret",
             "uploadStatusText" to "Restored"
         ))
         createViewModel(savedStateHandle)
         
         val state = viewModel.uiState.value
         assertThat(state.downloadUrl).isEqualTo("https://test.com")
-        assertThat(state.generatedPassword).isEqualTo("secret")
+        assertThat(state.generatedPassphrase).isEqualTo("secret")
         assertThat(state.uploadStatusText).isEqualTo("Restored")
     }
 
@@ -313,6 +317,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = {}
         )
@@ -353,6 +358,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = {}
         )
@@ -396,6 +402,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = {}
         )
@@ -422,7 +429,7 @@ class UploadViewModelTest {
             totalZips = 1,
             totalBytes = 100L,
             runtimeSeconds = 60L,
-            password = "pwd"
+            passphrase = "pwd"
         ))
         every { uploadArchiveUseCase.execute(any(), any()) } returns statusFlow
 
@@ -439,6 +446,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = {}
         )
@@ -449,7 +457,7 @@ class UploadViewModelTest {
         val state = viewModel.uiState.value
         assertThat(state.isUploading).isFalse()
         assertThat(state.downloadUrl).isEqualTo("https://download.com")
-        assertThat(state.generatedPassword).isEqualTo("pwd")
+        assertThat(state.generatedPassphrase).isEqualTo("pwd")
         assertThat(state.uploadedZips).isEqualTo(1)
     }
 
@@ -479,6 +487,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = { fatalErrorReceived = it }
         )
@@ -514,6 +523,7 @@ class UploadViewModelTest {
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             zipEncryption = ZipEncryption.NONE,
+            useDoubleZipping = false,
             selectedService = uploadRepo,
             onFatalError = { fatalErrorReceived = it }
         )

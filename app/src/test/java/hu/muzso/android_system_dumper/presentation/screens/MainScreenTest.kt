@@ -47,6 +47,7 @@ class MainScreenTest {
                 onNavigateToQrCode = {},
                 onShowHelp = {},
                 onNavigateToIpInfo = {},
+                onNavigateToDownload = {},
                 showShortToast = {}
             )
         }
@@ -76,8 +77,10 @@ class MainScreenTest {
                 onSetShouldUploadGetprop = { },
                 onSetShouldUploadAppLogs = { },
                 onSetZipEncryption = { },
+                onSetUseDoubleZipping = { },
                 onSelectService = { },
                 onToggleUploading = { },
+                onStartHttpServer = { },
                 onNavigateToQrCode = { },
                 onShowHelp = { },
                 onNavigateToIpInfo = { },
@@ -88,7 +91,8 @@ class MainScreenTest {
         }
 
         composeTestRule.onNodeWithText("Step 1: Filesystem Scan").assertExists()
-        composeTestRule.onNodeWithText("Step 2: Packaging & Upload").assertExists()
+        composeTestRule.onNodeWithText("Step 2: Packaging").assertExists()
+        composeTestRule.onNodeWithText("Step 3: File Transfer").assertExists()
     }
 
     @Test
@@ -114,8 +118,10 @@ class MainScreenTest {
                 onSetShouldUploadGetprop = { },
                 onSetShouldUploadAppLogs = { },
                 onSetZipEncryption = { },
+                onSetUseDoubleZipping = { },
                 onSelectService = { },
                 onToggleUploading = { },
+                onStartHttpServer = { },
                 onNavigateToQrCode = { },
                 onShowHelp = { },
                 onNavigateToIpInfo = { },
@@ -152,8 +158,10 @@ class MainScreenTest {
                 onSetShouldUploadGetprop = { },
                 onSetShouldUploadAppLogs = { },
                 onSetZipEncryption = { },
+                onSetUseDoubleZipping = { },
                 onSelectService = { },
                 onToggleUploading = { toggled = true },
+                onStartHttpServer = { },
                 onNavigateToQrCode = { },
                 onShowHelp = { },
                 onNavigateToIpInfo = { },

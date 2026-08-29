@@ -148,7 +148,7 @@ class ScanPipelineIntegrationTest {
             options = ZipOptions(
                 outputFilePath = zipFilePath,
                 encryptionMethod = ZipEncryption.NONE,
-                password = null
+                passphrase = null
             ),
             readIntoMemory = false
         )

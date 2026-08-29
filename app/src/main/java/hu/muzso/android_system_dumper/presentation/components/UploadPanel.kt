@@ -30,36 +30,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import hu.muzso.android_system_dumper.R
-import hu.muzso.android_system_dumper.model.ZipEncryption
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.UploadUiState
 import hu.muzso.android_system_dumper.presentation.widgets.SettingsDropdownSelector
 import hu.muzso.android_system_dumper.presentation.widgets.SettingsSwitchRow
 import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
 
 /**
- * A UI component that provides configuration options and controls for the upload process.
- * 
- * This panel includes settings for the upload service, ZIP encryption, batch size,
- * proxy configuration, and toggles for selecting which data to upload. It also
- * displays the current upload progress and status.
+ * A UI component that provides configuration options and controls for the file transfer process.
+ *
+ * This panel includes settings for the upload service, proxy configuration, and Tor usage. 
+ * It also displays the current upload progress and provides buttons to start/stop the 
+ * upload or start the local HTTP server.
  *
  * @param settingsUiState The current settings UI state.
  * @param uploadUiState The current upload UI state.
  * @param filesCount The number of files found during the scan.
- * @param onSetCustomBatchSizeMb Callback to update the custom batch size.
  * @param onSetProxySpecification Callback to update the proxy specification.
  * @param onSetShouldUseTor Callback to toggle Tor usage.
- * @param onSetShouldUploadZips Callback to toggle ZIP upload.
- * @param onSetShouldUploadReadableList Callback to toggle readable list upload.
- * @param onSetShouldUploadUnreadableList Callback to toggle unreadable list upload.
- * @param onSetShouldUploadExcludedList Callback to toggle excluded list upload.
- * @param onSetShouldUploadMissingList Callback to toggle missing list upload.
- * @param onSetShouldUploadSymlinkList Callback to toggle symlink list upload.
- * @param onSetShouldUploadGetprop Callback to toggle getprop upload.
- * @param onSetShouldUploadAppLogs Callback to toggle app logs upload.
- * @param onSetZipEncryption Callback to update ZIP encryption.
  * @param onSelectService Callback to change the upload service.
  * @param onToggleUploading Callback to start or stop the upload.
  * @param formatBytes Function to format byte values for display.
@@ -70,20 +59,11 @@ fun UploadPanel(
     settingsUiState: SettingsUiState,
     uploadUiState: UploadUiState,
     filesCount: Int,
-    onSetCustomBatchSizeMb: (String) -> Unit,
     onSetProxySpecification: (String) -> Unit,
     onSetShouldUseTor: (Boolean) -> Unit,
-    onSetShouldUploadZips: (Boolean) -> Unit,
-    onSetShouldUploadReadableList: (Boolean) -> Unit,
-    onSetShouldUploadUnreadableList: (Boolean) -> Unit,
-    onSetShouldUploadExcludedList: (Boolean) -> Unit,
-    onSetShouldUploadMissingList: (Boolean) -> Unit,
-    onSetShouldUploadSymlinkList: (Boolean) -> Unit,
-    onSetShouldUploadGetprop: (Boolean) -> Unit,
-    onSetShouldUploadAppLogs: (Boolean) -> Unit,
-    onSetZipEncryption: (ZipEncryption) -> Unit,
     onSelectService: (UploadRepository) -> Unit,
     onToggleUploading: () -> Unit,
+    onStartHttpServer: () -> Unit,
     formatBytes: (Long) -> String,
     modifier: Modifier = Modifier
 ) {
@@ -91,7 +71,7 @@ fun UploadPanel(
         modifier = modifier
             .fillMaxWidth()
             .widthIn(max = 600.dp)
-            .testTag("step_2_card"),
+            .testTag("step_3_card"),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -100,7 +80,7 @@ fun UploadPanel(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.step_2_packaging_upload),
+                text = stringResource(R.string.step_3_file_transfer),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -114,29 +94,6 @@ fun UploadPanel(
                     itemLabel = { it.name }
                 )
             }
-            SettingsDropdownSelector(
-                label = "ZIP encryption",
-                items = ZipEncryption.entries,
-                selectedItem = settingsUiState.zipEncryption,
-                onItemSelected = onSetZipEncryption,
-                itemLabel = {
-                    when (it) {
-                        ZipEncryption.NONE -> "None"
-                        ZipEncryption.STANDARD -> "Standard"
-                        ZipEncryption.AES -> "AES"
-                    }
-                }
-            )
-            OutlinedTextField(
-                value = settingsUiState.customBatchSizeMb,
-                onValueChange = onSetCustomBatchSizeMb,
-                label = { Text(stringResource(R.string.custom_batch_size_mb)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("batch_size_input"),
-                singleLine = true
-            )
             OutlinedTextField(
                 value = settingsUiState.proxySpecification,
                 onValueChange = onSetProxySpecification,
@@ -153,59 +110,6 @@ fun UploadPanel(
                 checked = settingsUiState.shouldUseTor,
                 onCheckedChange = onSetShouldUseTor,
                 testTag = "switch_use_tor"
-            )
-            Text(
-                text = stringResource(R.string.select_what_to_upload),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.readable_files_bundled_into_zip_archives),
-                checked = settingsUiState.shouldUploadZips,
-                onCheckedChange = onSetShouldUploadZips,
-                testTag = "switch_upload_zips"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_readable_files),
-                checked = settingsUiState.shouldUploadReadableList,
-                onCheckedChange = onSetShouldUploadReadableList,
-                testTag = "switch_upload_readble"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_unreadable_files),
-                checked = settingsUiState.shouldUploadUnreadableList,
-                onCheckedChange = onSetShouldUploadUnreadableList,
-                testTag = "switch_upload_unreadable"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_excluded_files),
-                checked = settingsUiState.shouldUploadExcludedList,
-                onCheckedChange = onSetShouldUploadExcludedList,
-                testTag = "switch_upload_exluded"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_missing_files),
-                checked = settingsUiState.shouldUploadMissingList,
-                onCheckedChange = onSetShouldUploadMissingList,
-                testTag = "switch_upload_missing"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_symlinks),
-                checked = settingsUiState.shouldUploadSymlinkList,
-                onCheckedChange = onSetShouldUploadSymlinkList,
-                testTag = "switch_upload_symlink"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.output_of_getprop),
-                checked = settingsUiState.shouldUploadGetprop,
-                onCheckedChange = onSetShouldUploadGetprop,
-                testTag = "switch_upload_getprop"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.upload_logs),
-                checked = settingsUiState.shouldUploadAppLogs,
-                onCheckedChange = onSetShouldUploadAppLogs,
-                testTag = "switch_upload_applogs"
             )
 
             if (uploadUiState.totalZips > 0) {
@@ -294,9 +198,35 @@ fun UploadPanel(
                 )
             ) {
                 Text(
-                    text = if (uploadUiState.isUploading) stringResource(R.string.stop) else stringResource(R.string.start),
+                    text = if (uploadUiState.isUploading) stringResource(R.string.stop) else stringResource(R.string.upload),
                     fontWeight = FontWeight.Bold
                 )
+            }
+
+            if (!uploadUiState.isUploading) {
+                Text(
+                    text = stringResource(R.string.or),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Button(
+                    onClick = onStartHttpServer,
+                    enabled = filesCount > 0,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .testTag("http_server_button"),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.start_http_server),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
@@ -310,20 +240,11 @@ fun UploadPanelPreview() {
             settingsUiState = SettingsUiState(),
             uploadUiState = UploadUiState(),
             filesCount = 10,
-            onSetCustomBatchSizeMb = {},
             onSetProxySpecification = {},
             onSetShouldUseTor = {},
-            onSetShouldUploadZips = {},
-            onSetShouldUploadReadableList = {},
-            onSetShouldUploadUnreadableList = {},
-            onSetShouldUploadExcludedList = {},
-            onSetShouldUploadMissingList = {},
-            onSetShouldUploadSymlinkList = {},
-            onSetShouldUploadGetprop = {},
-            onSetShouldUploadAppLogs = {},
-            onSetZipEncryption = {},
             onSelectService = {},
             onToggleUploading = {},
+            onStartHttpServer = {},
             formatBytes = { "$it B" }
         )
     }

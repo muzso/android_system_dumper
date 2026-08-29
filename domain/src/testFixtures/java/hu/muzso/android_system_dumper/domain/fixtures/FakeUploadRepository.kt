@@ -1,7 +1,7 @@
 package hu.muzso.android_system_dumper.domain.fixtures
 
 import hu.muzso.android_system_dumper.model.upload.UploadResult
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -15,10 +15,39 @@ class FakeMemoryFileSystem : FileSystem {
         val canRead: Boolean = true,
         val size: Long = 0L,
         val lastModified: Long = 0L,
-        val content: String = "",
+        val binaryContent: ByteArray = byteArrayOf(),
         val children: List<DirEntry> = emptyList(),
         val symlinkTarget: String? = null
-    )
+    ) {
+        val content: String get() = String(binaryContent)
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            other as Node
+            if (path != other.path) return false
+            if (type != other.type) return false
+            if (canRead != other.canRead) return false
+            if (size != other.size) return false
+            if (lastModified != other.lastModified) return false
+            if (!binaryContent.contentEquals(other.binaryContent)) return false
+            if (children != other.children) return false
+            if (symlinkTarget != other.symlinkTarget) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = path.hashCode()
+            result = 31 * result + type
+            result = 31 * result + canRead.hashCode()
+            result = 31 * result + size.hashCode()
+            result = 31 * result + lastModified.hashCode()
+            result = 31 * result + binaryContent.contentHashCode()
+            result = 31 * result + children.hashCode()
+            result = 31 * result + (symlinkTarget?.hashCode() ?: 0)
+            return result
+        }
+    }
 
     val nodes = mutableMapOf<String, Node>()
     var simulateNoSpaceError = false
@@ -31,7 +60,8 @@ class FakeMemoryFileSystem : FileSystem {
     fun addFileWithText(path: String, text: String, canRead: Boolean = true): String {
         val normalized = normalizePath(path)
         createParentDirs(normalized)
-        nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = text.length.toLong(), canRead = canRead, content = text, lastModified = System.currentTimeMillis())
+        val bytes = text.toByteArray()
+        nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = bytes.size.toLong(), canRead = canRead, binaryContent = bytes, lastModified = System.currentTimeMillis())
         updateParent(normalized, DirEntry.TYPE_FILE)
         return normalized
     }
@@ -39,8 +69,8 @@ class FakeMemoryFileSystem : FileSystem {
     fun addFileOfSize(path: String, size: Long = 0L, canRead: Boolean = true): String {
         val normalized = normalizePath(path)
         createParentDirs(normalized)
-        val content = " ".repeat(size.toInt())
-        nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = content.length.toLong(), canRead = canRead, content = content, lastModified = System.currentTimeMillis())
+        val bytes = ByteArray(size.toInt()) { ' '.code.toByte() }
+        nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = bytes.size.toLong(), canRead = canRead, binaryContent = bytes, lastModified = System.currentTimeMillis())
         updateParent(normalized, DirEntry.TYPE_FILE)
         return normalized
     }
@@ -148,7 +178,7 @@ class FakeMemoryFileSystem : FileSystem {
     override suspend fun openInputStream(path: String): InputStream {
         val normalized = normalizePath(path)
         val resolved = resolveSymlink(normalized)
-        return (nodes[resolved]?.content ?: "").byteInputStream()
+        return (nodes[resolved]?.binaryContent ?: byteArrayOf()).inputStream()
     }
 
     override suspend fun openOutputStream(path: String, append: Boolean): OutputStream {
@@ -162,10 +192,10 @@ class FakeMemoryFileSystem : FileSystem {
         return object : ByteArrayOutputStream() {
             override fun close() {
                 super.close()
-                val text = toString()
+                val bytes = toByteArray()
                 val oldNode = nodes[normalized]
-                val newContent = if (append) (oldNode?.content ?: "") + text else text
-                nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = newContent.length.toLong(), content = newContent, lastModified = System.currentTimeMillis())
+                val newContent = if (append) (oldNode?.binaryContent ?: byteArrayOf()) + bytes else bytes
+                nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = newContent.size.toLong(), binaryContent = newContent, lastModified = System.currentTimeMillis())
                 updateParent(normalized, DirEntry.TYPE_FILE)
             }
         }
@@ -208,7 +238,8 @@ class FakeMemoryFileSystem : FileSystem {
             throw java.io.IOException("Cannot write to a directory: $normalized")
         }
         createParentDirs(normalized)
-        nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = text.length.toLong(), content = text, lastModified = System.currentTimeMillis())
+        val bytes = text.toByteArray()
+        nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = bytes.size.toLong(), binaryContent = bytes, lastModified = System.currentTimeMillis())
         updateParent(normalized, DirEntry.TYPE_FILE)
     }
 
@@ -220,8 +251,9 @@ class FakeMemoryFileSystem : FileSystem {
         }
         createParentDirs(normalized)
         val oldNode = nodes[normalized]
-        val newContent = (oldNode?.content ?: "") + text
-        nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = newContent.length.toLong(), content = newContent, lastModified = System.currentTimeMillis())
+        val bytes = text.toByteArray()
+        val newContent = (oldNode?.binaryContent ?: byteArrayOf()) + bytes
+        nodes[normalized] = Node(normalized, type = DirEntry.TYPE_FILE, size = newContent.size.toLong(), binaryContent = newContent, lastModified = System.currentTimeMillis())
         updateParent(normalized, DirEntry.TYPE_FILE)
     }
 

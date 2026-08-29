@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-29
+
+### Added
+
+- New file transfer method: downloads from an HTTP server. It's much faster and doesn't involve any third-parties, just two devices on the same LAN (e.g. Wi-Fi).
+- Added new packaging option: double-zipping.
+
+### Changed
+
+- The main screen's UI layout has been reworked. The workflow steps are now cleaner: step#1 filesystem scan, step#2 packaging, step#3 file transfer, step#4 finished.
+- Help screen got updated and extended.
+
+### Fixed
+
+- The QR code screenshot test now actually shows a QR code.
+
 ## [1.0.1] - 2026-08-25
 
 ### Fixed
@@ -29,5 +45,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial release (feature complete and mostly stable)
 
+[1.1.0]: https://github.com/muzso/android_system_dumper/compare/1.0.1...1.1.0
 [1.0.1]: https://github.com/muzso/android_system_dumper/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/muzso/android_system_dumper/releases/tag/1.0.0

@@ -133,6 +133,142 @@ class DefaultScanRepositoryScanningTest {
     }
 
     @Test
+    fun `scan honors fileCountLimit in Phase 1`() = runTest(testDispatcher) {
+        val limit = 1
+        val filesCount = limit + 5
+        for (i in 1..filesCount) {
+            fileSystem.addDir("/d$i")
+            fileSystem.addFileOfSize("/d$i/f$i.txt", 100)
+        }
+
+        val repo = DefaultScanRepository(
+            fileSystem,
+            DefaultFileCollector(),
+            FakeMetadataCollector(),
+            logger,
+            clock,
+            loadExcludeListUseCase,
+            getSeedPathsUseCase,
+            getScanRootUseCase,
+            dispatcherProvider
+        )
+
+        // Seed with /data
+        every { getSeedPathsUseCase.execute() } returns listOf("/")
+
+        repo.scan(ignoreExcludeList = false, fileCountLimit = limit).test {
+            assertThat(awaitItem()).isEqualTo(ScanStatus.RUNNING)
+            assertThat(awaitItem()).isEqualTo(ScanStatus.FINISHED)
+            awaitComplete()
+        }
+
+        val result = repo.scanResult.value
+
+        // Scanner checks whether limit is reached after a directory's entries were processed.
+        // In this test each directory has just one file, so directory order is irrelevant.
+        // Limit is 1, /d1/f1.txt is found, readableFilesCountInPhase1 becomes 1.
+        assertThat(result.readableFiles.size).isEqualTo(limit)
+        logger.assertLogExists("D", "ScanRepository", "Phase 1: Loop file count limit ($limit) reached ($limit), stopping this loop.")
+    }
+
+    @Test
+    fun `scan honors fileCountLimit in Phase 1 approximately`() = runTest(testDispatcher) {
+        val filesCountPerDir = 5
+        val limit = filesCountPerDir * 2 + 2
+        for (k in 1..10) {
+            fileSystem.addDir("/d$k")
+            for (i in 1..filesCountPerDir) {
+                fileSystem.addFileOfSize("/d$k/d${k}_f$i.txt", 100)
+            }
+        }
+
+        val repo = DefaultScanRepository(
+            fileSystem,
+            DefaultFileCollector(),
+            FakeMetadataCollector(),
+            logger,
+            clock,
+            loadExcludeListUseCase,
+            getSeedPathsUseCase,
+            getScanRootUseCase,
+            dispatcherProvider
+        )
+
+        // Seed with /data
+        every { getSeedPathsUseCase.execute() } returns listOf("/")
+
+        repo.scan(ignoreExcludeList = false, fileCountLimit = limit).test {
+            assertThat(awaitItem()).isEqualTo(ScanStatus.RUNNING)
+            assertThat(awaitItem()).isEqualTo(ScanStatus.FINISHED)
+            awaitComplete()
+        }
+
+        val result = repo.scanResult.value
+        val modulus = limit % filesCountPerDir
+        val expectedReadableFiles = if (modulus == 0) limit else limit + filesCountPerDir - modulus
+
+        // Scanner checks whether limit is reached after a directory's entries were processed.
+        // In this test each directory has the same number of files, so directory order is irrelevant.
+        // If limit is exactly the multiple of directory size, then limit will be perfectly honored.
+        // If limit is other than exactly the multiple of directory size, then number of found (readable)
+        // files will be the value that is rounded up to the next multiple of directory size.
+        assertThat(result.readableFiles.size).isEqualTo(expectedReadableFiles)
+        logger.assertLogExists("D", "ScanRepository", "Phase 1: Loop file count limit ($limit) reached ($expectedReadableFiles), stopping this loop.")
+    }
+
+    @Test
+    fun `scan resets fileCountLimit counter when Phase 1 restarts`() = runTest(testDispatcher) {
+        val metaCollector = FakeMetadataCollector()
+        val repo = DefaultScanRepository(
+            fileSystem,
+            DefaultFileCollector(),
+            metaCollector,
+            logger,
+            clock,
+            loadExcludeListUseCase,
+            getSeedPathsUseCase,
+            getScanRootUseCase,
+            dispatcherProvider
+        )
+
+        fileSystem.addDir("/data3")
+        fileSystem.addFileWithText("/data3/00_meta.txt", "/data4")
+        fileSystem.addFileOfSize("/data3/01_f1.txt", 100)
+        fileSystem.addDir("/data3/data31")
+        fileSystem.addFileOfSize("/data3/data31/02_f2.txt", 100)
+
+        fileSystem.addDir("/data4")
+        fileSystem.addFileOfSize("/data4/03_f3.txt", 100)
+        fileSystem.addFileOfSize("/data4/04_f4.txt", 100)
+        fileSystem.addDir("/data4/data41")
+        fileSystem.addFileOfSize("/data4/data41/05_f5.txt", 100)
+
+        metaCollector.setTrigger("/data3/00_meta.txt", listOf("/data4"))
+        every { getSeedPathsUseCase.execute() } returns listOf("/data3")
+
+        repo.scan(ignoreExcludeList = false, fileCountLimit = 1).test {
+            awaitItem() // RUNNING
+            awaitItem() // FINISHED
+            awaitComplete()
+        }
+
+        val result = repo.scanResult.value
+
+        // Run#1 finds all direct children of /data3, meaning: 00_meta.txt, 01_f1.txt (count=2)
+        // Limit is reached, phase#1 loop breaks.
+        // Phase#2 runs, MetadataCollector returns "/data4" by processing "00_meta.txt".
+        // Run#2 starts after Phase 2.
+        // Run#2 traverses /data4. Finds direct children of /data4: 03_f3.txt, 04_f4.txt (count=2).
+        // Limit reached, phase#1 loop breaks.
+        // readableFiles should be 4 files: 00_meta.txt, 01_f1.txt, 03_f3.txt, 04_f4.txt.
+        assertThat(result.readableFiles.size).isEqualTo(4)
+        
+        // Should have logged twice.
+        val logs = logger.events.filter { it.level == "D" && it.message?.contains("Phase 1: Loop file count limit") == true }
+        assertThat(logs.size).isEqualTo(2)
+    }
+
+    @Test
     fun `scan follows symlink chains`() = runTest(testDispatcher) {
         fileSystem.addDir("/proc/3453")
         fileSystem.addSymlink("/proc/3453/exe", "/usr/bin/blabla")

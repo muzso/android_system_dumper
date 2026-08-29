@@ -6,11 +6,11 @@ import hu.muzso.android_system_dumper.common.NetworkUtils
 import hu.muzso.android_system_dumper.domain.fixtures.FakeClock
 import hu.muzso.android_system_dumper.domain.fixtures.FakeFileLogger
 import hu.muzso.android_system_dumper.model.ZipEncryption
+import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRepositoryManager
 import hu.muzso.android_system_dumper.presentation.state.AppState
 import hu.muzso.android_system_dumper.repository.IpInfoRepository
-import hu.muzso.android_system_dumper.upload.network.HttpClientProvider
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
-import hu.muzso.android_system_dumper.upload.network.UploadRepositoryManager
 import hu.muzso.android_system_dumper.usecase.GetSeedPathsUseCase
 import hu.muzso.android_system_dumper.usecase.LoadExcludeListUseCase
 import hu.muzso.android_system_dumper.usecase.StartTorUseCase
@@ -195,7 +195,10 @@ class SettingsViewModelTest {
         assertThat(viewModel.appState.value).isEqualTo(AppState.HelpScreen)
 
         viewModel.processIntent(SettingsViewModel.Intent.NavigateToQrCode("test_qr"))
-        assertThat(viewModel.appState.value).isEqualTo(AppState.QrCodeScreen("test_qr"))
+        assertThat(viewModel.appState.value).isEqualTo(AppState.QrCodeScreen("test_qr", AppState.HelpScreen))
+
+        viewModel.processIntent(SettingsViewModel.Intent.NavigateTo(AppState.HelpScreen))
+        assertThat(viewModel.appState.value).isEqualTo(AppState.HelpScreen)
 
         viewModel.processIntent(SettingsViewModel.Intent.NavigateToMain)
         assertThat(viewModel.appState.value).isEqualTo(AppState.MainScreen)
@@ -240,5 +243,48 @@ class SettingsViewModelTest {
         advanceUntilIdle()
         
         logger.assertLogExists("E", "SettingsViewModel", "Failed to start CustomTorService")
+    }
+
+    @Test
+    fun `setting zipEncryption to NONE disables useDoubleZipping`() = runTest {
+        createViewModel(SavedStateHandle(mapOf("useDoubleZipping" to true, "zipEncryption" to ZipEncryption.AES)))
+        val collectJob = launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.zipEncryption).isEqualTo(ZipEncryption.AES)
+        assertThat(viewModel.uiState.value.useDoubleZipping).isTrue()
+
+        viewModel.processIntent(SettingsViewModel.Intent.SetZipEncryption(ZipEncryption.NONE))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.zipEncryption).isEqualTo(ZipEncryption.NONE)
+        assertThat(viewModel.uiState.value.useDoubleZipping).isFalse()
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `SetUseDoubleZipping is ignored when zipEncryption is NONE`() = runTest {
+        createViewModel(SavedStateHandle(mapOf("zipEncryption" to ZipEncryption.NONE, "useDoubleZipping" to false)))
+        val collectJob = launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.processIntent(SettingsViewModel.Intent.SetUseDoubleZipping(true))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.useDoubleZipping).isFalse()
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `SetUseDoubleZipping works when zipEncryption is STANDARD`() = runTest {
+        createViewModel(SavedStateHandle(mapOf("zipEncryption" to ZipEncryption.STANDARD, "useDoubleZipping" to false)))
+        val collectJob = launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.processIntent(SettingsViewModel.Intent.SetUseDoubleZipping(true))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.useDoubleZipping).isTrue()
+        collectJob.cancel()
     }
 }

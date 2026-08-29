@@ -22,7 +22,7 @@ sealed class UploadWorkflowStatus {
         val totalZips: Int,
         val totalBytes: Long,
         val runtimeSeconds: Long,
-        val password: String? = null
+        val passphrase: String? = null
     ) : UploadWorkflowStatus()
     data class PartialSuccess(
         val downloadUrl: String,
@@ -31,7 +31,7 @@ sealed class UploadWorkflowStatus {
         val totalBytes: Long,
         val runtimeSeconds: Long,
         val failedZips: Int,
-        val password: String? = null
+        val passphrase: String? = null
     ) : UploadWorkflowStatus()
     data class Error(val error: UploadError, val totalBytes: Long, val runtimeSeconds: Long) : UploadWorkflowStatus()
     object Aborted : UploadWorkflowStatus()

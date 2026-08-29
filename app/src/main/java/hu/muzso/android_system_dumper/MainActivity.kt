@@ -4,16 +4,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import hu.muzso.android_system_dumper.logging.FileLogger
 import hu.muzso.android_system_dumper.platform.UiMessenger
+import hu.muzso.android_system_dumper.presentation.DownloadViewModel
 import hu.muzso.android_system_dumper.presentation.IpInfoViewModel
 import hu.muzso.android_system_dumper.presentation.ScanViewModel
 import hu.muzso.android_system_dumper.presentation.SettingsViewModel
 import hu.muzso.android_system_dumper.presentation.UploadViewModel
+import hu.muzso.android_system_dumper.presentation.screens.DownloadScreen
 import hu.muzso.android_system_dumper.presentation.screens.HelpScreen
 import hu.muzso.android_system_dumper.presentation.screens.IpInfoScreen
 import hu.muzso.android_system_dumper.presentation.screens.MainScreen
@@ -51,8 +54,15 @@ class MainActivity : ComponentActivity() {
                 val scanViewModel: ScanViewModel = hiltViewModel()
                 val settingsViewModel: SettingsViewModel = hiltViewModel()
                 val uploadViewModel: UploadViewModel = hiltViewModel()
+                val downloadViewModel: DownloadViewModel = hiltViewModel()
 
                 val appState by settingsViewModel.appState.collectAsState()
+
+                LaunchedEffect(appState) {
+                    if (appState is AppState.MainScreen) {
+                        downloadViewModel.stopServer()
+                    }
+                }
 
                 when (val state = appState) {
                     is AppState.MainScreen -> {
@@ -69,6 +79,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onShowHelp = { settingsViewModel.processIntent(SettingsViewModel.Intent.NavigateToHelp) },
                             onNavigateToIpInfo = { settingsViewModel.processIntent(SettingsViewModel.Intent.NavigateToIpInfo) },
+                            onNavigateToDownload = { settingsViewModel.processIntent(SettingsViewModel.Intent.NavigateToDownload) },
                             showShortToast = uiMessenger::showShortToast
                         )
                     }
@@ -77,7 +88,7 @@ class MainActivity : ComponentActivity() {
                         QrCodeScreen(
                             text = state.qrcodeText,
                             uploadViewModel = uploadViewModel,
-                            onBack = { settingsViewModel.processIntent(SettingsViewModel.Intent.NavigateToMain) }
+                            onBack = { settingsViewModel.processIntent(SettingsViewModel.Intent.NavigateTo(state.previousState)) }
                         )
                     }
 
@@ -94,6 +105,23 @@ class MainActivity : ComponentActivity() {
                             viewModel = ipInfoViewModel,
                             settingsViewModel = settingsViewModel,
                             onBack = { settingsViewModel.processIntent(SettingsViewModel.Intent.NavigateToMain) }
+                        )
+                    }
+
+                    is AppState.DownloadScreen -> {
+                        DownloadScreen(
+                            viewModel = downloadViewModel,
+                            settingsViewModel = settingsViewModel,
+                            onBack = { settingsViewModel.processIntent(SettingsViewModel.Intent.NavigateToMain) },
+                            onNavigateToQrCode = {
+                                settingsViewModel.processIntent(
+                                    SettingsViewModel.Intent.NavigateToQrCode(
+                                        it
+                                    )
+                                )
+                            },
+                            showShortToast = uiMessenger::showShortToast,
+                            formatBytes = uploadViewModel::formatBytes
                         )
                     }
                 }

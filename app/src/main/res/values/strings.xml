@@ -2,6 +2,9 @@
 <resources>
     <string name="app_name">Android System Dumper</string>
     <string name="step_1_filesystem_scan">Step 1: Filesystem Scan</string>
+    <string name="step_2_packaging">Step 2: Packaging</string>
+    <string name="step_3_file_transfer">Step 3: File Transfer</string>
+    <string name="step_4_finished">Step 4: Finished</string>
     <string name="no_of_readable_files">No. of readable files:</string>
     <string name="total_size">Total size:</string>
     <string name="scanning">Scanning ...</string>
@@ -12,12 +15,24 @@
     <string name="ignore_exclude_list">Ignore exclude list</string>
     <string name="stop">Stop</string>
     <string name="start">Start</string>
-    <string name="step_2_packaging_upload"><![CDATA[Step 2: Packaging & Upload]]></string>
+    <string name="upload">Upload</string>
+    <string name="or">or</string>
+    <string name="start_http_server">Start HTTP Server</string>
+    <string name="downloads">Downloads</string>
+    <string name="download_all">Download all</string>
+    <string name="verify_downloads">Verify that all files are in your local downloads folder.</string>
+    <string name="downloads_finished">Downloads finished in %minutes% minutes.</string>
+    <string name="zip_encryption">ZIP encryption</string>
+    <string name="use_double_zipping">Use double-zipping</string>
+    <string name="zip_passphrase">ZIP passphrase</string>
+    <string name="select_network_interface">Select network interface</string>
+    <string name="progress_of_file_downloads">Progress of file downloads (success / total):</string>
+    <string name="percent_downloaded">%1$.1f%% downloaded</string>
     <string name="custom_batch_size_mb">Custom batch size (MB)</string>
     <string name="proxy">Proxy</string>
     <string name="use_tor_network">Use Tor network</string>
-    <string name="select_what_to_upload">Select what to upload:</string>
-    <string name="readable_files_bundled_into_zip_archives">Readable files bundled into ZIP archives</string>
+    <string name="select_what_to_package">Select what to put into ZIPs:</string>
+    <string name="readable_files_filesystem">Readable files collected from the filesystem</string>
     <string name="list_of_readable_files">List of readable files</string>
     <string name="list_of_unreadable_files">List of unreadable files</string>
     <string name="list_of_excluded_files">List of excluded files</string>
@@ -28,8 +43,7 @@
     <string name="progress_of_file_uploads">Progress of file uploads (success / total):</string>
     <string name="percent_uploaded">%1$.1f%% uploaded</string>
     <string name="x_of_y">%1$s of %2$s</string>
-    <string name="step_3_download_url_list_is_complete">Step 3: Download URL is ready!</string>
-    <string name="the_list_of_download_urls_is_available_at">Files can be downloaded using the following URL:</string>
+    <string name="files_can_be_downloaded">Files can be downloaded using the following URL:</string>
     <string name="copied_url">Copied URL</string>
     <string name="back">Back</string>
     <string name="help_instructions"><![CDATA[Help & Instructions]]></string>
@@ -37,17 +51,20 @@
     <string name="help_app_description_description">%1$s recursively scans the device\'s filesystem for files it can read. These are packaged into size-limited and encrypted ZIP bundles and uploaded to a file sharing service. A number of text files (with file lists, logs, etc. generated during the scan) can also be uploaded. In the end, a URL and the ZIP encryption passphrase are shown so you can download the uploaded files and unpack them. Optionally this URL can be rendered as a QR code too.</string>
     <string name="help_input_fields_controls_title"><![CDATA[Input fields & controls]]></string>
     <string name="help_input_fields_controls_description">• Ignore exclude list: If enabled, filesystem scanning will not exclude files even if they match the built-in exclusion list.\n\n
-• File sharing service: Select the service to upload to.\n\n
-• ZIP encryption: By default files are packaged into password-protected ZIP files. Here you can disable encryption or select a stronger encryption method (AES), but for the latter you might need third-party tools to decrypt and unpack.\n\n
-• Custom batch size (MB): Specify the size limit for each ZIP bundle (must be between %1$d and %2$d MB). If available storage space is less than this limit, processing will be aborted. Increasing the batch size might result in failed uploads (some networks don\'t support file uploads of several hundred megabytes, e.g. in-vehicle mobile connections), the default usually works.\n\n
-• Proxy: Specify a proxy for HTTP requests. Can be an HTTP proxy (start with \"http://\") or a SOCKS proxy (either start with \"socks://\" or with the IP address or hostname). If you only enter a (TCP) port number, a SOCKS proxy will be assumed to listen on localhost (127.0.0.1) and the entered port.\n\n
-• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections through Tor and/or the upload speed might be a lot slower. Toggling this off and on rebuilds the Tor circuits, thus you\'ll probably end up with different exit nodes.\n\n
-• Readable files bundled into ZIP archives: Control if the actual ZIP bundles containing the collected readable files should be uploaded. These ZIPs can take up several gigabytes and upload might take a long time depending on your internet connection\'s bandwidth. Disabling this option is good for a dry-run. You can just upload the list of files that were found to be readable, open/download it and see if you\'re OK with those files being uploaded to the file sharing service.\n\n
+• ZIP encryption: By default files are packaged into encrypted ZIP files. Here you can disable encryption or select a stronger encryption method (AES), but for the latter you might need third-party tools to decrypt and unpack.\n\n
+• Custom batch size (MB): Specify the size limit for the set of files that go into a single ZIP archive (must be between %1$d and %2$d MB). The ZIP files themselves will be smaller since compression is applied. If available storage space in the cache directory is less than this limit, processing will be aborted (assuming the worst case scenario where 0%% compression is achieved). Increasing the batch size might result in failed uploads (some networks don\'t support file uploads of several hundred megabytes, e.g. in-vehicle mobile connections), the default usually works. If you use the HTTP Server method, larger batch sizes (e.g. 1024 MB) work as well.\n\n
+• Use double-zipping: For maximum privacy (if uploading to a file sharing service), apply double-zipping. Standard ZIP files don\'t allow the encryption of the central directory, thus the list of files in a ZIP file can always be read without knowing the passphrase. Putting a compressed plain ZIP inside a not compressed, but encrypted ZIP works around this problem. Of course this option doesn\'t make sense (and is disabled) if ZIP encryption is set to NONE.\n\n
+• Readable files collected from the filesystem: Control if the actual ZIP bundles containing the collected readable files should be uploaded. These ZIPs can take up several gigabytes and upload might take a long time depending on your internet connection\'s bandwidth. Disabling this option is good for a dry-run. You can just upload the list of files that were found to be readable, open/download it and see if you\'re OK with those files being uploaded to the file sharing service.\n\n
 • List of readable files (readable_list.txt): Control if the list of readable files (the ones that are bundled into ZIPs by the previous option) should be uploaded.\n\n
 • List of unreadable files (unreadable_list.txt): Control if the list of unreadable files (i.e. the ones that are on the device, but the app couldn\'t open them) should be uploaded.\n\n
 • List of excluded files (excluded_list.txt): Control if the list of excluded files (the ones that were skipped because they match the built-in exclusion list) should be uploaded.\n\n
+• List of missing files (missing_list.txt): Control if the list of missing files (the ones were the path was found somewhere, but no file exists at that location) should be uploaded.\n\n
+• List of symlinks (symlink_list.txt): Control if the list of found symbolic links should be uploaded.\n\n
 • Output of getprop (getprop.txt): Control if the output of the \"getprop\" command (i.e. Android system properties) should be uploaded.\n\n
 • Application logs (logs.txt): Control if logs (of this application) should be uploaded.
+• File sharing service: Select the service to upload to.\n\n
+• Proxy: Specify a proxy for HTTP requests. Can be an HTTP proxy (start with \"http://\") or a SOCKS proxy (either start with \"socks://\" or with the IP address or hostname). If you only enter a (TCP) port number, a SOCKS proxy will be assumed to listen on localhost (127.0.0.1) and the entered port.\n\n
+• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections through Tor and/or the upload speed might be a lot slower. Toggling this off and on rebuilds the Tor circuits, thus you\'ll probably end up with different exit nodes.\n\n
 </string>
     <string name="help_features_title">Features</string>
     <string name="help_features_description">• Cancellation scope: Hit \"Stop\" during the scan or upload phase to preserve and proceed with whatever has been already processed.\n\n
@@ -99,4 +116,5 @@ Accepted formats are:\n
     <string name="tor_service_name">Tor Service (Android System Dumper)</string>
     <string name="tor_is_running">Tor is running</string>
     <string name="tor_notification_channel_name">Tor Network</string>
+    <string name="copy_passphrase_to_clipboard">Copy passphrase to clipboard</string>
 </resources>

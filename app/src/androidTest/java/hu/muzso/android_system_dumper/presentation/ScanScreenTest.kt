@@ -11,7 +11,7 @@ import androidx.test.espresso.accessibility.AccessibilityChecks
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.model.ScanState
 import hu.muzso.android_system_dumper.model.ScanStatus
-import hu.muzso.android_system_dumper.presentation.components.ProgressCard
+import hu.muzso.android_system_dumper.presentation.components.FilesystemScanCard
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -34,7 +34,7 @@ class ScanScreenTest {
     @Test
     fun idleState_displaysReady() {
         composeTestRule.setContent {
-            ProgressCard(
+            FilesystemScanCard(
                 scanUiState = ScanState(scanStatus = ScanStatus.IDLE),
                 ignoreExcludeList = false,
                 onIgnoreExcludeListChange = {},
@@ -50,7 +50,7 @@ class ScanScreenTest {
     @Test
     fun scanningState_displaysScanning() {
         composeTestRule.setContent {
-            ProgressCard(
+            FilesystemScanCard(
                 scanUiState = ScanState(scanStatus = ScanStatus.RUNNING, isScanning = true),
                 ignoreExcludeList = false,
                 onIgnoreExcludeListChange = {},
@@ -66,7 +66,7 @@ class ScanScreenTest {
     @Test
     fun completedState_displaysFinished() {
         composeTestRule.setContent {
-            ProgressCard(
+            FilesystemScanCard(
                 scanUiState = ScanState(scanStatus = ScanStatus.FINISHED),
                 ignoreExcludeList = false,
                 onIgnoreExcludeListChange = {},
@@ -82,7 +82,7 @@ class ScanScreenTest {
     @Test
     fun errorState_displaysAborted() {
         composeTestRule.setContent {
-            ProgressCard(
+            FilesystemScanCard(
                 scanUiState = ScanState(scanStatus = ScanStatus.ABORTED),
                 ignoreExcludeList = false,
                 onIgnoreExcludeListChange = {},
@@ -99,7 +99,7 @@ class ScanScreenTest {
     fun clickingScanButton_triggersOnToggleScanning() {
         var clicked = false
         composeTestRule.setContent {
-            ProgressCard(
+            FilesystemScanCard(
                 scanUiState = ScanState(scanStatus = ScanStatus.IDLE),
                 ignoreExcludeList = false,
                 onIgnoreExcludeListChange = {},
@@ -118,7 +118,7 @@ class ScanScreenTest {
     fun togglingIgnoreExcludeSwitch_triggersCallback() {
         var checkedState = false
         composeTestRule.setContent {
-            ProgressCard(
+            FilesystemScanCard(
                 scanUiState = ScanState(scanStatus = ScanStatus.IDLE),
                 ignoreExcludeList = checkedState,
                 onIgnoreExcludeListChange = { checkedState = it },

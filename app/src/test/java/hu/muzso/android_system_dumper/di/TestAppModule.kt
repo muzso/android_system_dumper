@@ -10,8 +10,8 @@ import hu.muzso.android_system_dumper.domain.fixtures.FakeMemoryFileSystem
 import hu.muzso.android_system_dumper.domain.fixtures.FakeScanRepository
 import hu.muzso.android_system_dumper.domain.fixtures.FakeUploadRepository
 import hu.muzso.android_system_dumper.filesystem.FileSystem
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.scan.ScanRepository
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import javax.inject.Singleton
 
 @Module

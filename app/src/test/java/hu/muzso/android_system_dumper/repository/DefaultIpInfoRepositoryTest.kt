@@ -4,8 +4,8 @@ import com.google.common.truth.Truth.assertThat
 import com.squareup.moshi.Moshi
 import hu.muzso.android_system_dumper.common.DefaultNetworkUtils
 import hu.muzso.android_system_dumper.domain.fixtures.FakeDispatcherProvider
-import hu.muzso.android_system_dumper.upload.network.HttpClientProvider
-import hu.muzso.android_system_dumper.upload.network.TorChecker
+import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
+import hu.muzso.android_system_dumper.network.upload.TorChecker
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

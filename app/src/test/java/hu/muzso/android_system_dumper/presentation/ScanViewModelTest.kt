@@ -55,7 +55,7 @@ class ScanViewModelTest {
     @Test
     fun `scan completion updates state`() = runTest {
         val statuses = listOf(ScanStatus.RUNNING, ScanStatus.FINISHED)
-        every { scanSystemUseCase.execute(any()) } returns flowOf(*statuses.toTypedArray())
+        every { scanSystemUseCase.execute(any(), any()) } returns flowOf(*statuses.toTypedArray())
 
         viewModel.processIntent(ScanAction.ToggleScanning(ignoreExcludeList = false))
 
@@ -76,7 +76,7 @@ class ScanViewModelTest {
 
     @Test
     fun `repeated toggle scanning works correctly`() = runTest {
-        every { scanSystemUseCase.execute(any()) } returns flowOf(ScanStatus.RUNNING, ScanStatus.FINISHED)
+        every { scanSystemUseCase.execute(any(), any()) } returns flowOf(ScanStatus.RUNNING, ScanStatus.FINISHED)
 
         // First scan
         viewModel.processIntent(ScanAction.ToggleScanning(ignoreExcludeList = false))
@@ -87,7 +87,7 @@ class ScanViewModelTest {
         assertThat(viewModel.uiState.value.scanStatus).isEqualTo(ScanStatus.FINISHED)
         
         verify(exactly = 2) { 
-            scanSystemUseCase.execute(any()).run { } 
+            scanSystemUseCase.execute(any(), any()).run { } 
         }
     }
 

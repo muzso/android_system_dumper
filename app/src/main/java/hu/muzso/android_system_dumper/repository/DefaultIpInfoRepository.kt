@@ -4,8 +4,8 @@ import com.squareup.moshi.Moshi
 import hu.muzso.android_system_dumper.common.DispatcherProvider
 import hu.muzso.android_system_dumper.common.NetworkUtils
 import hu.muzso.android_system_dumper.model.IpInfo
-import hu.muzso.android_system_dumper.upload.network.HttpClientProvider
-import hu.muzso.android_system_dumper.upload.network.TorChecker
+import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
+import hu.muzso.android_system_dumper.network.upload.TorChecker
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import javax.inject.Inject

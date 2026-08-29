@@ -62,4 +62,16 @@ class NetworkUtilsTest {
             Truth.assertThat(networkUtils.httpErrorMessage(code)).isEqualTo(message)
         }
     }
+
+    @Test
+    fun `getLocalIPv4Addresses returns a list of IPs and no loopback`() {
+        val ips = networkUtils.getLocalIPv4Addresses()
+        // We can't guarantee any IP exists in CI/Robolectric, but we can check loopback
+        for (ip in ips) {
+            Truth.assertThat(ip).isNotEqualTo("127.0.0.1")
+            Truth.assertThat(ip).doesNotContain("localhost")
+            // Check if it's a valid IPv4
+            Truth.assertThat(ip).matches("^(\\d{1,3}\\.){3}\\d{1,3}$")
+        }
+    }
 }

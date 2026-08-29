@@ -4,7 +4,7 @@ import hu.muzso.android_system_dumper.domain.fixtures.FakeUploadRepository
 import hu.muzso.android_system_dumper.domain.repository.upload.UploadRepositoryContract
 import hu.muzso.android_system_dumper.model.UploadError
 import hu.muzso.android_system_dumper.model.upload.UploadResult
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 
 class FakeUploadRepositoryContractTest : UploadRepositoryContract() {
     private val repository = FakeUploadRepository()

@@ -10,17 +10,19 @@ import hu.muzso.android_system_dumper.common.NetworkUtils
 import hu.muzso.android_system_dumper.common.PlatformUtils
 import hu.muzso.android_system_dumper.filesystem.FileSystem
 import hu.muzso.android_system_dumper.logging.FileLogger
+import hu.muzso.android_system_dumper.network.ArchiveGenerator
+import hu.muzso.android_system_dumper.network.BatchingLogic
+import hu.muzso.android_system_dumper.network.DefaultArchiveGenerator
+import hu.muzso.android_system_dumper.network.upload.TorChecker
+import hu.muzso.android_system_dumper.network.upload.UploadExecutor
+import hu.muzso.android_system_dumper.network.upload.UploadProgressTracker
+import hu.muzso.android_system_dumper.network.upload.UploadRetryPolicy
 import hu.muzso.android_system_dumper.platform.QrGenerator
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.SystemInfo
 import hu.muzso.android_system_dumper.platform.TorServiceController
 import hu.muzso.android_system_dumper.scan.ArchiveRepository
 import hu.muzso.android_system_dumper.scan.ScanRepository
-import hu.muzso.android_system_dumper.upload.BatchingLogic
-import hu.muzso.android_system_dumper.upload.network.TorChecker
-import hu.muzso.android_system_dumper.upload.network.UploadExecutor
-import hu.muzso.android_system_dumper.upload.network.UploadProgressTracker
-import hu.muzso.android_system_dumper.upload.network.UploadRetryPolicy
 import hu.muzso.android_system_dumper.usecase.BatchFilesUseCase
 import hu.muzso.android_system_dumper.usecase.CalculateStatisticsUseCase
 import hu.muzso.android_system_dumper.usecase.CancelScanUseCase
@@ -84,6 +86,20 @@ object DomainModule {
 
     @Provides
     @Singleton
+    fun provideArchiveGenerator(
+        fileSystem: FileSystem,
+        clock: Clock,
+        logger: FileLogger,
+        systemInfo: SystemInfo,
+        batchFilesUseCase: BatchFilesUseCase,
+        createArchiveUseCase: CreateArchiveUseCase,
+        cleanupUseCase: CleanupUseCase
+    ): ArchiveGenerator = DefaultArchiveGenerator(
+        fileSystem, clock, logger, systemInfo, batchFilesUseCase, createArchiveUseCase, cleanupUseCase
+    )
+
+    @Provides
+    @Singleton
     fun provideCreateZipUseCase(zipCreator: ZipCreator) = CreateZipUseCase(zipCreator)
 
     @Provides
@@ -123,21 +139,17 @@ object DomainModule {
     @Provides
     @Singleton
     fun provideUploadArchiveUseCase(
-        fileSystem: FileSystem,
         clock: Clock,
         logger: FileLogger,
-        systemInfo: SystemInfo,
-        batchFilesUseCase: BatchFilesUseCase,
-        createArchiveUseCase: CreateArchiveUseCase,
         uploadBatchUseCase: UploadBatchUseCase,
         cleanupUseCase: CleanupUseCase,
         resourceProvider: ResourceProvider,
         progressTracker: UploadProgressTracker,
-        dispatcherProvider: DispatcherProvider
+        dispatcherProvider: DispatcherProvider,
+        archiveGenerator: ArchiveGenerator
     ) = UploadArchiveUseCase(
-        fileSystem, clock, logger, systemInfo, batchFilesUseCase,
-        createArchiveUseCase, uploadBatchUseCase, cleanupUseCase, resourceProvider,
-        progressTracker, dispatcherProvider
+        clock, logger, uploadBatchUseCase, cleanupUseCase, resourceProvider,
+        progressTracker, dispatcherProvider, archiveGenerator
     )
 
     @Provides

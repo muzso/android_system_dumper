@@ -49,8 +49,8 @@ class DefaultScanRepository @Inject constructor(
     private val _scanUpdate = MutableStateFlow(ScanUpdate(0, 0L))
     override val scanUpdate: StateFlow<ScanUpdate> = _scanUpdate.asStateFlow()
 
-    override fun scan(ignoreExcludeList: Boolean): Flow<ScanStatus> = flow {
-        val session = ScanSession(ignoreExcludeList)
+    override fun scan(ignoreExcludeList: Boolean, fileCountLimit: Int): Flow<ScanStatus> = flow {
+        val session = ScanSession(ignoreExcludeList, fileCountLimit)
         session.run(this)
     }.flowOn(dispatcherProvider.io())
 
@@ -72,7 +72,10 @@ class DefaultScanRepository @Inject constructor(
         _scanUpdate.value = ScanUpdate(0, 0L)
     }
 
-    private inner class ScanSession(private val ignoreExcludeList: Boolean) {
+    private inner class ScanSession(
+        private val ignoreExcludeList: Boolean,
+        private val fileCountLimit: Int
+    ) {
         private val dirQueue = ArrayDeque<Pair<String, String>>() // path, source
         private val metadataFiles = ArrayDeque<Pair<String, String>>() // path, source
         private val visitedCanonicalDirs = mutableSetOf<String>()
@@ -109,9 +112,23 @@ class DefaultScanRepository @Inject constructor(
                 lastUiUpdate = clock.now().toEpochMilli()
 
                 while (currentCoroutineContext().isActive && (dirQueue.isNotEmpty() || metadataFiles.isNotEmpty())) {
-                    
+                    val readableFilesAtPhase1Start = collector.getCollectedResult().readableFiles.size
+
                     // Phase 1: Filesystem Scan
                     while (currentCoroutineContext().isActive && dirQueue.isNotEmpty()) {
+                        if (fileCountLimit > 0) {
+                            val readableFilesCountInPhase1 = collector.getCollectedResult().readableFiles.size - readableFilesAtPhase1Start
+                            if (readableFilesCountInPhase1 >= fileCountLimit) {
+                                // discard what remained
+                                dirQueue.clear()
+                                logger.d(TAG, "Phase 1: Loop file count limit ($fileCountLimit) reached ($readableFilesCountInPhase1), stopping this loop.")
+                                logger.d(TAG, "readableFiles:\n" + collector.getCollectedResult().readableFiles.joinToString(
+                                    "\n"
+                                ) { item -> "${item.path}, ${item.size}, ${item.source}" })
+                                break
+                            }
+                        }
+
                         yield()
                         val (currentDir, currentSource) = dirQueue.removeFirst()
 
@@ -132,7 +149,7 @@ class DefaultScanRepository @Inject constructor(
                             if (verbose) logger.v(TAG, "Processing entry: $childRaw (type: ${entry.type})")
 
                             if (!fileSystem.exists(childRaw)) {
-                                logger.i(TAG, "Missing file at $childRaw, skipping.")
+                                logger.i(TAG, "run(): Missing file at $childRaw, skipping.")
                                 collector.addMissingFile(childRaw)
                                 continue
                             }
@@ -141,13 +158,13 @@ class DefaultScanRepository @Inject constructor(
 
                             when (entry.type) {
                                 DirEntry.TYPE_DIR -> {
-                                    if (verbose) logger.v(TAG, "Directory: \"${childRaw}\"")
+                                    if (verbose) logger.v(TAG, "run(): Directory: \"${childRaw}\"")
                                     if (isExcluded(childRaw)) {
-                                        if (verbose) logger.v(TAG, "Excluded directory: \"${childRaw}\"")
+                                        if (verbose) logger.v(TAG, "run(): Excluded directory: \"${childRaw}\"")
                                         continue
                                     }
                                     if (isExcluded(canonical)) {
-                                        if (verbose) logger.v(TAG, "Excluded directory: \"${canonical}\"")
+                                        if (verbose) logger.v(TAG, "run(): Excluded directory: \"${canonical}\"")
                                         continue
                                     }
                                     if (visitedCanonicalDirs.add(canonical)) {
@@ -155,17 +172,17 @@ class DefaultScanRepository @Inject constructor(
                                     }
                                 }
                                 DirEntry.TYPE_FILE -> {
-                                    if (verbose) logger.v(TAG, "File: \"${childRaw}\"")
+                                    if (verbose) logger.v(TAG, "run(): File: \"${childRaw}\"")
                                     if (isProc(childRaw)) {
-                                        if (verbose) logger.v(TAG, "Proc: \"${childRaw}\"")
+                                        if (verbose) logger.v(TAG, "run(): Proc: \"${childRaw}\"")
                                         continue
                                     }
                                     if (isExcluded(childRaw)) {
-                                        if (verbose) logger.v(TAG, "Excluded file: \"${childRaw}\"")
+                                        if (verbose) logger.v(TAG, "run(): Excluded file: \"${childRaw}\"")
                                         continue
                                     }
                                     if (isExcluded(canonical)) {
-                                        if (verbose) logger.v(TAG, "Excluded file: \"${canonical}\"")
+                                        if (verbose) logger.v(TAG, "run(): Excluded file: \"${canonical}\"")
                                         continue
                                     }
                                     if (visitedCanonicalFiles.add(canonical)) {
@@ -177,7 +194,7 @@ class DefaultScanRepository @Inject constructor(
                                             checkUiUpdate()
 
                                             if (metadataCollector.isMetadataFile(childRaw)) {
-                                                if (verbose) logger.v(TAG, "Metadata file: \"${childRaw}\"")
+                                                if (verbose) logger.v(TAG, "run(): Metadata file: \"${childRaw}\"")
                                                 metadataFiles.addLast(childRaw to currentSource)
                                             }
                                         } else {
@@ -186,7 +203,7 @@ class DefaultScanRepository @Inject constructor(
                                     }
                                 }
                                 DirEntry.TYPE_LINK -> {
-                                    if (verbose) logger.v(TAG, "Symlink: $childRaw -> $canonical")
+                                    if (verbose) logger.v(TAG, "run(): Symlink: $childRaw -> $canonical")
                                     collector.addSymlink(childRaw, canonical)
                                     if (fileSystem.isDirectory(canonical)) {
                                         if (visitedCanonicalDirs.add(canonical)) {
@@ -194,15 +211,15 @@ class DefaultScanRepository @Inject constructor(
                                         }
                                     } else if (fileSystem.isFile(canonical)) {
                                         if (isProc(canonical)) {
-                                            if (verbose) logger.v(TAG, "Proc: \"${canonical}\"")
+                                            if (verbose) logger.v(TAG, "run(): Proc: \"${canonical}\"")
                                             continue
                                         }
                                         if (isExcluded(childRaw)) {
-                                            if (verbose) logger.v(TAG, "Excluded symlink: \"${childRaw}\"")
+                                            if (verbose) logger.v(TAG, "run(): Excluded symlink: \"${childRaw}\"")
                                             continue
                                         }
                                         if (isExcluded(canonical)) {
-                                            if (verbose) logger.v(TAG, "Excluded symlink: \"${canonical}\"")
+                                            if (verbose) logger.v(TAG, "run(): Excluded symlink: \"${canonical}\"")
                                             continue
                                         }
                                         if (visitedCanonicalFiles.add(canonical)) {
@@ -214,7 +231,7 @@ class DefaultScanRepository @Inject constructor(
                                                 checkUiUpdate()
 
                                                 if (metadataCollector.isMetadataFile(canonical)) {
-                                                    if (verbose) logger.v(TAG, "Metadata file: \"${canonical}\"")
+                                                    if (verbose) logger.v(TAG, "run(): Metadata file: \"${canonical}\"")
                                                     metadataFiles.addLast(canonical to currentSource)
                                                 }
                                             } else {
@@ -287,6 +304,7 @@ class DefaultScanRepository @Inject constructor(
             val canonical = getCanonicalPathSafe(rawPath) ?: return
 
             if (!fileSystem.exists(rawPath)) {
+                logger.i(TAG, "queuePath(): Missing file at $rawPath, skipping.")
                 collector.addMissingFile(rawPath)
                 return
             }
@@ -294,6 +312,7 @@ class DefaultScanRepository @Inject constructor(
             val effectiveSource = sourceOverride ?: currentSource
 
             if (fileSystem.isDirectory(rawPath)) {
+                if (verbose) logger.v(TAG, "queuePath(): Directory: \"${rawPath}\"")
                 if (visitedCanonicalDirs.add(canonical)) {
                     dirQueue.addLast(rawPath to effectiveSource)
                     if (ensureParents) {
@@ -301,8 +320,21 @@ class DefaultScanRepository @Inject constructor(
                     }
                 }
             } else if (fileSystem.isFile(rawPath)) {
-                if (checkExcludeList && (isExcluded(rawPath) || isExcluded(canonical))) return
-                if (isProc(rawPath)) return
+                if (verbose) logger.v(TAG, "queuePath(): File: \"${rawPath}\"")
+                if (checkExcludeList) {
+                    if (isExcluded(rawPath)) {
+                        if (verbose) logger.v(TAG, "queuePath(): Excluded file: \"${rawPath}\"")
+                        return
+                    }
+                    if (isExcluded(canonical)) {
+                        if (verbose) logger.v(TAG, "queuePath(): Excluded file: \"${canonical}\"")
+                        return
+                    }
+                }
+                if (isProc(rawPath)) {
+                    if (verbose) logger.v(TAG, "queuePath(): Proc: \"${rawPath}\"")
+                    return
+                }
                 if (visitedCanonicalFiles.add(canonical)) {
                     if (fileSystem.canRead(rawPath)) {
                         val len = fileSystem.size(rawPath)
@@ -312,7 +344,7 @@ class DefaultScanRepository @Inject constructor(
                         checkUiUpdate()
 
                         if (metadataCollector.isMetadataFile(rawPath)) {
-                            if (verbose) logger.v(TAG, "Metadata file: \"${rawPath}\"")
+                            if (verbose) logger.v(TAG, "queuePath(): Metadata file: \"${rawPath}\"")
                             metadataFiles.addLast(rawPath to effectiveSource)
                         }
                     }

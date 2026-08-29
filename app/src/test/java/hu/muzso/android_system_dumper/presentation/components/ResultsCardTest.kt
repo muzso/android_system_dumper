@@ -23,7 +23,7 @@ class ResultsCardTest {
     fun resultsCard_showsCorrectInfo() {
         val state = UploadUiState(
             downloadUrl = "http://test.com",
-            generatedPassword = "test-password"
+            generatedPassphrase = "test-passphrase"
         )
 
         composeTestRule.setContent {
@@ -37,7 +37,7 @@ class ResultsCardTest {
         }
 
         composeTestRule.onNodeWithText("http://test.com").assertExists()
-        composeTestRule.onNodeWithText("test-password").assertExists()
+        composeTestRule.onNodeWithText("test-passphrase").assertExists()
     }
 
     @Test

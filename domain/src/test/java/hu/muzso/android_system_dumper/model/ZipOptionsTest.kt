@@ -10,14 +10,14 @@ class ZipOptionsTest {
         val options1 = ZipOptions(
             outputFilePath = "/path/to/zip",
             encryptionMethod = ZipEncryption.AES,
-            password = "password".toCharArray(),
+            passphrase = "passphrase".toCharArray(),
             compressionMethod = CompressionMethod.DEFLATE,
             compressionLevel = CompressionLevel.NORMAL
         )
         val options2 = ZipOptions(
             outputFilePath = "/path/to/zip",
             encryptionMethod = ZipEncryption.AES,
-            password = "password".toCharArray(),
+            passphrase = "passphrase".toCharArray(),
             compressionMethod = CompressionMethod.DEFLATE,
             compressionLevel = CompressionLevel.NORMAL
         )
@@ -27,16 +27,16 @@ class ZipOptionsTest {
     }
 
     @Test
-    fun `equals returns false for different passwords`() {
+    fun `equals returns false for different passphrases`() {
         val options1 = ZipOptions(
             outputFilePath = "a",
             encryptionMethod = ZipEncryption.AES,
-            password = "p1".toCharArray()
+            passphrase = "p1".toCharArray()
         )
         val options2 = ZipOptions(
             outputFilePath = "a",
             encryptionMethod = ZipEncryption.AES,
-            password = "p2".toCharArray()
+            passphrase = "p2".toCharArray()
         )
 
         assertThat(options1).isNotEqualTo(options2)

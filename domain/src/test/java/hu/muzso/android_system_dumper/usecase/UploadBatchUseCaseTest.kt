@@ -5,10 +5,10 @@ import hu.muzso.android_system_dumper.domain.fixtures.FakeFileLogger
 import hu.muzso.android_system_dumper.domain.fixtures.FakeTorServiceController
 import hu.muzso.android_system_dumper.model.DomainResult
 import hu.muzso.android_system_dumper.model.UploadError
-import hu.muzso.android_system_dumper.upload.network.TorChecker
-import hu.muzso.android_system_dumper.upload.network.UploadExecutor
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
-import hu.muzso.android_system_dumper.upload.network.UploadRetryPolicy
+import hu.muzso.android_system_dumper.network.upload.TorChecker
+import hu.muzso.android_system_dumper.network.upload.UploadExecutor
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRetryPolicy
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

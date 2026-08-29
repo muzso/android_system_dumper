@@ -8,14 +8,14 @@ import hu.muzso.android_system_dumper.common.DefaultDispatcherProvider
 import hu.muzso.android_system_dumper.common.DefaultRandomProvider
 import hu.muzso.android_system_dumper.common.DispatcherProvider
 import hu.muzso.android_system_dumper.common.RandomProvider
+import hu.muzso.android_system_dumper.network.upload.DefaultTorChecker
+import hu.muzso.android_system_dumper.network.upload.TorChecker
 import hu.muzso.android_system_dumper.platform.AndroidXmlParser
 import hu.muzso.android_system_dumper.platform.CustomTorServiceController
 import hu.muzso.android_system_dumper.platform.DefaultQrGenerator
 import hu.muzso.android_system_dumper.platform.QrGenerator
 import hu.muzso.android_system_dumper.platform.TorServiceController
 import hu.muzso.android_system_dumper.platform.XmlParser
-import hu.muzso.android_system_dumper.upload.network.DefaultTorChecker
-import hu.muzso.android_system_dumper.upload.network.TorChecker
 import javax.inject.Singleton
 
 @Module

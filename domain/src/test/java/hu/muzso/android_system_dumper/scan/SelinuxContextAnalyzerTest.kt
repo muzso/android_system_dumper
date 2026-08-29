@@ -75,4 +75,41 @@ class SelinuxContextAnalyzerTest {
         val expected = listOf("/dev/bus/usb/")
         assertEquals(expected, analyzer.extractPathCandidates(input))
     }
+
+    @Test
+    fun `extractPathCandidates handles nested groups`() {
+        // /(system(/vendor)?|vendor)/bin/.*
+        val input = "/(system(/vendor)?|vendor)/bin/.*"
+        val results = analyzer.extractPathCandidates(input)
+        val expected = listOf(
+            "/system/bin/",
+            "/system/vendor/bin/",
+            "/vendor/bin/"
+        )
+        assertEquals(expected.sorted(), results.sorted())
+    }
+
+    @Test
+    fun `extractPathCandidates handles complex character classes`() {
+        val input = "/dev/block/platform/soc/[a-c0-9]+\\.sdhci/mmc_host"
+        val results = analyzer.extractPathCandidates(input)
+        // Truncates at unescaped dot (or in this case, the char class expansion + escaped dot)
+        // Actually, SelinuxContextAnalyzer truncates at '.' if not escaped.
+        // Let's see how it handles [a-c0-9]+
+        // truncate() returns sb.toString() when it sees '+'.
+        assertTrue(results.any { it.startsWith("/dev/block/platform/soc/") })
+    }
+
+    @Test
+    fun `extractPathCandidates handles multiple alternations and optionality`() {
+        val input = "/(system|vendor)/etc/(permissions|sysconfig)/.*\\.xml"
+        val results = analyzer.extractPathCandidates(input)
+        val expected = listOf(
+            "/system/etc/permissions/",
+            "/system/etc/sysconfig/",
+            "/vendor/etc/permissions/",
+            "/vendor/etc/sysconfig/"
+        )
+        assertEquals(expected.sorted(), results.sorted())
+    }
 }

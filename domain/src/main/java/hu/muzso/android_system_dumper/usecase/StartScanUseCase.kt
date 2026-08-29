@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.Flow
 class StartScanUseCase(
     private val repository: ScanRepository
 ) {
-    fun execute(ignoreExcludeList: Boolean): Flow<ScanStatus> = repository.scan(ignoreExcludeList)
+    fun execute(ignoreExcludeList: Boolean, fileCountLimit: Int = 0): Flow<ScanStatus> = repository.scan(ignoreExcludeList, fileCountLimit)
 }

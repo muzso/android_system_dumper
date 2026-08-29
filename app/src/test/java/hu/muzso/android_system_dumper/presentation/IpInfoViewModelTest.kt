@@ -2,9 +2,9 @@ package hu.muzso.android_system_dumper.presentation
 
 import com.google.common.truth.Truth.assertThat
 import hu.muzso.android_system_dumper.model.IpInfo
+import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
 import hu.muzso.android_system_dumper.presentation.state.IpInfoUiState
 import hu.muzso.android_system_dumper.repository.IpInfoRepository
-import hu.muzso.android_system_dumper.upload.network.HttpClientProvider
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

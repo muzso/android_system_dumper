@@ -42,17 +42,18 @@ import hu.muzso.android_system_dumper.model.ScanAction
 import hu.muzso.android_system_dumper.model.ScanState
 import hu.muzso.android_system_dumper.model.ScanStatus
 import hu.muzso.android_system_dumper.model.ZipEncryption
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.presentation.ScanViewModel
 import hu.muzso.android_system_dumper.presentation.SettingsViewModel
 import hu.muzso.android_system_dumper.presentation.UploadViewModel
 import hu.muzso.android_system_dumper.presentation.components.FatalErrorDialog
-import hu.muzso.android_system_dumper.presentation.components.ProgressCard
+import hu.muzso.android_system_dumper.presentation.components.FilesystemScanCard
+import hu.muzso.android_system_dumper.presentation.components.PackagingPanel
 import hu.muzso.android_system_dumper.presentation.components.ResultsCard
 import hu.muzso.android_system_dumper.presentation.components.UploadPanel
 import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.UploadUiState
 import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import kotlinx.coroutines.launch
 
 /**
@@ -77,6 +78,7 @@ fun MainScreen(
     onNavigateToQrCode: (String) -> Unit,
     onShowHelp: () -> Unit,
     onNavigateToIpInfo: () -> Unit,
+    onNavigateToDownload: () -> Unit,
     showShortToast: (String) -> Unit
 ) {
     val scanUiState by scanViewModel.uiState.collectAsStateWithLifecycle()
@@ -105,6 +107,7 @@ fun MainScreen(
         onSetShouldUploadGetprop = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadGetprop(it)) },
         onSetShouldUploadAppLogs = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadAppLogs(it)) },
         onSetZipEncryption = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetZipEncryption(it)) },
+        onSetUseDoubleZipping = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetUseDoubleZipping(it)) },
         onSelectService = { settingsViewModel.processIntent(SettingsViewModel.Intent.SelectService(it)) },
         onToggleUploading = {
             val service = settingsUiState.selectedService
@@ -122,6 +125,7 @@ fun MainScreen(
                     shouldUploadGetprop = settingsUiState.shouldUploadGetprop,
                     shouldUploadAppLogs = settingsUiState.shouldUploadAppLogs,
                     zipEncryption = settingsUiState.zipEncryption,
+                    useDoubleZipping = settingsUiState.useDoubleZipping,
                     selectedService = service,
                     onFatalError = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetFatalError(it)) }
                 )
@@ -130,6 +134,7 @@ fun MainScreen(
                 showShortToast("No upload service selected")
             }
         },
+        onStartHttpServer = onNavigateToDownload,
         onNavigateToQrCode = onNavigateToQrCode,
         onShowHelp = onShowHelp,
         onNavigateToIpInfo = onNavigateToIpInfo,
@@ -147,7 +152,7 @@ fun MainScreen(
  * The content area of the main screen, defining the overall layout and UI components.
  *
  * This Composable uses a [androidx.compose.material3.Scaffold] with a top bar and a scrollable column containing
- * the [hu.muzso.android_system_dumper.presentation.components.ProgressCard], [hu.muzso.android_system_dumper.presentation.components.UploadPanel], and [hu.muzso.android_system_dumper.presentation.components.ResultsCard].
+ * the [hu.muzso.android_system_dumper.presentation.components.FilesystemScanCard], [hu.muzso.android_system_dumper.presentation.components.PackagingPanel], and [hu.muzso.android_system_dumper.presentation.components.ResultsCard].
  *
  * @param scanUiState The current state of the system scan.
  * @param settingsUiState The current application settings.
@@ -197,8 +202,10 @@ fun MainScreenContent(
     onSetShouldUploadGetprop: (Boolean) -> Unit,
     onSetShouldUploadAppLogs: (Boolean) -> Unit,
     onSetZipEncryption: (ZipEncryption) -> Unit,
+    onSetUseDoubleZipping: (Boolean) -> Unit,
     onSelectService: (UploadRepository) -> Unit,
     onToggleUploading: () -> Unit,
+    onStartHttpServer: () -> Unit,
     onNavigateToQrCode: (String) -> Unit,
     onShowHelp: () -> Unit,
     onNavigateToIpInfo: () -> Unit,
@@ -270,11 +277,32 @@ fun MainScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            ProgressCard(
+            FilesystemScanCard(
                 scanUiState = scanUiState,
                 ignoreExcludeList = settingsUiState.ignoreExcludeList,
                 onIgnoreExcludeListChange = onSetIgnoreExcludeList,
                 onToggleScanning = onToggleScanning,
+                formatBytes = formatBytes
+            )
+
+            PackagingPanel(
+                modifier = Modifier.onGloballyPositioned {
+                    uploadPanelRootBottom = it.positionInRoot().y + it.size.height
+                },
+                settingsUiState = settingsUiState,
+                uploadUiState = uploadUiState,
+                filesCount = scanUiState.filesCount,
+                onSetCustomBatchSizeMb = onSetCustomBatchSizeMb,
+                onSetShouldUploadZips = onSetShouldUploadZips,
+                onSetShouldUploadReadableList = onSetShouldUploadReadableList,
+                onSetShouldUploadUnreadableList = onSetShouldUploadUnreadableList,
+                onSetShouldUploadExcludedList = onSetShouldUploadExcludedList,
+                onSetShouldUploadMissingList = onSetShouldUploadMissingList,
+                onSetShouldUploadSymlinkList = onSetShouldUploadSymlinkList,
+                onSetShouldUploadGetprop = onSetShouldUploadGetprop,
+                onSetShouldUploadAppLogs = onSetShouldUploadAppLogs,
+                onSetZipEncryption = onSetZipEncryption,
+                onSetUseDoubleZipping = onSetUseDoubleZipping,
                 formatBytes = formatBytes
             )
 
@@ -285,20 +313,11 @@ fun MainScreenContent(
                 settingsUiState = settingsUiState,
                 uploadUiState = uploadUiState,
                 filesCount = scanUiState.filesCount,
-                onSetCustomBatchSizeMb = onSetCustomBatchSizeMb,
                 onSetProxySpecification = onSetProxySpecification,
                 onSetShouldUseTor = onSetShouldUseTor,
-                onSetShouldUploadZips = onSetShouldUploadZips,
-                onSetShouldUploadReadableList = onSetShouldUploadReadableList,
-                onSetShouldUploadUnreadableList = onSetShouldUploadUnreadableList,
-                onSetShouldUploadExcludedList = onSetShouldUploadExcludedList,
-                onSetShouldUploadMissingList = onSetShouldUploadMissingList,
-                onSetShouldUploadSymlinkList = onSetShouldUploadSymlinkList,
-                onSetShouldUploadGetprop = onSetShouldUploadGetprop,
-                onSetShouldUploadAppLogs = onSetShouldUploadAppLogs,
-                onSetZipEncryption = onSetZipEncryption,
                 onSelectService = onSelectService,
                 onToggleUploading = onToggleUploading,
+                onStartHttpServer = onStartHttpServer,
                 formatBytes = formatBytes
             )
 
@@ -356,8 +375,10 @@ private fun MainScreenContentPreview() {
             onSetShouldUploadGetprop = {},
             onSetShouldUploadAppLogs = {},
             onSetZipEncryption = {},
+            onSetUseDoubleZipping = {},
             onSelectService = {},
             onToggleUploading = {},
+            onStartHttpServer = {},
             onNavigateToQrCode = {},
             onShowHelp = {},
             onNavigateToIpInfo = {},

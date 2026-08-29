@@ -3,9 +3,9 @@ package hu.muzso.android_system_dumper.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
 import hu.muzso.android_system_dumper.presentation.state.IpInfoUiState
 import hu.muzso.android_system_dumper.repository.IpInfoRepository
-import hu.muzso.android_system_dumper.upload.network.HttpClientProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

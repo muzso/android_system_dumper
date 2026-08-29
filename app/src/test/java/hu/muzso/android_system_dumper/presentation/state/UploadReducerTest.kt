@@ -29,7 +29,7 @@ class UploadReducerTest {
             assertThat(newState.uploadedZips).isEqualTo(0)
             assertThat(newState.totalZips).isEqualTo(0)
             assertThat(newState.downloadUrl).isNull()
-            assertThat(newState.generatedPassword).isNull()
+            assertThat(newState.generatedPassphrase).isNull()
             assertThat(newState.currentZipUploadBytes).isEqualTo(0L)
             assertThat(newState.currentZipTotalBytes).isEqualTo(0L)
         }
@@ -77,13 +77,13 @@ class UploadReducerTest {
             val newState = reduce(state, UploadResult.UploadFinished(
                 downloadUrl = "http://result",
                 uploadedZips = 5,
-                password = "pwd",
+                passphrase = "pwd",
                 statusText = "Done"
             ))
             assertThat(newState.isUploading).isFalse()
             assertThat(newState.downloadUrl).isEqualTo("http://result")
             assertThat(newState.uploadedZips).isEqualTo(5)
-            assertThat(newState.generatedPassword).isEqualTo("pwd")
+            assertThat(newState.generatedPassphrase).isEqualTo("pwd")
             assertThat(newState.uploadStatusText).isEqualTo("Done")
         }
     }

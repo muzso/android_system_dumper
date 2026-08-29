@@ -4,19 +4,18 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.muzso.android_system_dumper.BuildConfig
 import hu.muzso.android_system_dumper.common.Clock
 import hu.muzso.android_system_dumper.common.NetworkUtils
 import hu.muzso.android_system_dumper.logging.FileLogger
 import hu.muzso.android_system_dumper.model.ZipEncryption
+import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRepositoryManager
 import hu.muzso.android_system_dumper.presentation.state.AppState
 import hu.muzso.android_system_dumper.presentation.state.SettingsResult
 import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.reduce
 import hu.muzso.android_system_dumper.repository.IpInfoRepository
-import hu.muzso.android_system_dumper.upload.network.HttpClientProvider
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
-import hu.muzso.android_system_dumper.upload.network.UploadRepositoryManager
 import hu.muzso.android_system_dumper.usecase.GetSeedPathsUseCase
 import hu.muzso.android_system_dumper.usecase.LoadExcludeListUseCase
 import hu.muzso.android_system_dumper.usecase.StartTorUseCase
@@ -50,9 +49,11 @@ class SettingsViewModel @Inject constructor(
 
     sealed class Intent {
         data class NavigateToQrCode(val qrcodeText: String) : Intent()
+        data class NavigateTo(val state: AppState) : Intent()
         object NavigateToMain : Intent()
         object NavigateToHelp : Intent()
         object NavigateToIpInfo : Intent()
+        object NavigateToDownload : Intent()
         data class SetCustomBatchSizeMb(val size: String) : Intent()
         data class SetProxySpecification(val spec: String) : Intent()
         data class SetShouldUseTor(val value: Boolean) : Intent()
@@ -65,6 +66,7 @@ class SettingsViewModel @Inject constructor(
         data class SetShouldUploadGetprop(val value: Boolean) : Intent()
         data class SetShouldUploadAppLogs(val value: Boolean) : Intent()
         data class SetZipEncryption(val value: ZipEncryption) : Intent()
+        data class SetUseDoubleZipping(val value: Boolean) : Intent()
         data class SetIgnoreExcludeList(val value: Boolean) : Intent()
         data class SelectService(val service: UploadRepository) : Intent()
         data class SetSelectedIpSource(val source: String) : Intent()
@@ -87,6 +89,7 @@ class SettingsViewModel @Inject constructor(
     private val _shouldUploadGetprop = savedStateHandle.getStateFlow("shouldUploadGetprop", false)
     private val _shouldUploadAppLogs = savedStateHandle.getStateFlow("shouldUploadAppLogs", true)
     private val _zipEncryption = savedStateHandle.getStateFlow("zipEncryption", ZipEncryption.STANDARD)
+    private val _useDoubleZipping = savedStateHandle.getStateFlow("useDoubleZipping", false)
     private val _selectedIpSource = savedStateHandle.getStateFlow("selectedIpSource", ipInfoRepository.getAvailableSources().first())
     private val _fatalError = MutableStateFlow<String?>(null)
 
@@ -98,7 +101,7 @@ class SettingsViewModel @Inject constructor(
         _customBatchSizeMb, _proxySpecification, _shouldUseTor, _shouldUploadZips,
         _shouldUploadReadableList, _shouldUploadUnreadableList, _shouldUploadExcludedList,
         _shouldUploadMissingList, _shouldUploadSymlinkList, _shouldUploadGetprop,
-        _shouldUploadAppLogs, _zipEncryption, _ignoreExcludeList, _selectedService,
+        _shouldUploadAppLogs, _zipEncryption, _useDoubleZipping, _ignoreExcludeList, _selectedService,
         _selectedIpSource, _fatalError
     ) { args ->
         @Suppress("UNCHECKED_CAST")
@@ -115,12 +118,13 @@ class SettingsViewModel @Inject constructor(
             shouldUploadGetprop = args[9] as Boolean,
             shouldUploadAppLogs = args[10] as Boolean,
             zipEncryption = args[11] as ZipEncryption,
-            ignoreExcludeList = args[12] as Boolean,
-            selectedService = args[13] as UploadRepository,
+            useDoubleZipping = args[12] as Boolean,
+            ignoreExcludeList = args[13] as Boolean,
+            selectedService = args[14] as UploadRepository,
             services = services,
-            selectedIpSource = args[14] as String,
+            selectedIpSource = args[15] as String,
             availableIpSources = ipInfoRepository.getAvailableSources(),
-            fatalError = args[15] as String?,
+            fatalError = args[16] as String?,
             exclusionList = loadExcludeListUseCase.execute(),
             discoveryRoots = getSeedPathsUseCase.execute()
         )
@@ -150,10 +154,12 @@ class SettingsViewModel @Inject constructor(
      */
     fun processIntent(intent: Intent) {
         when (intent) {
-            is Intent.NavigateToQrCode -> updateAppState(SettingsResult.AppStateChanged(AppState.QrCodeScreen(intent.qrcodeText)))
+            is Intent.NavigateToQrCode -> updateAppState(SettingsResult.AppStateChanged(AppState.QrCodeScreen(intent.qrcodeText, _appState.value)))
+            is Intent.NavigateTo -> updateAppState(SettingsResult.AppStateChanged(intent.state))
             Intent.NavigateToMain -> updateAppState(SettingsResult.AppStateChanged(AppState.MainScreen))
             Intent.NavigateToHelp -> updateAppState(SettingsResult.AppStateChanged(AppState.HelpScreen))
             Intent.NavigateToIpInfo -> updateAppState(SettingsResult.AppStateChanged(AppState.IpInfoScreen))
+            Intent.NavigateToDownload -> updateAppState(SettingsResult.AppStateChanged(AppState.DownloadScreen))
             is Intent.SetCustomBatchSizeMb -> savedStateHandle["customBatchSizeMb"] = intent.size
             is Intent.SetProxySpecification -> setProxySpecification(intent.spec)
             is Intent.SetShouldUseTor -> setShouldUseTor(intent.value)
@@ -165,7 +171,19 @@ class SettingsViewModel @Inject constructor(
             is Intent.SetShouldUploadSymlinkList -> savedStateHandle["shouldUploadSymlinkList"] = intent.value
             is Intent.SetShouldUploadGetprop -> savedStateHandle["shouldUploadGetprop"] = intent.value
             is Intent.SetShouldUploadAppLogs -> savedStateHandle["shouldUploadAppLogs"] = intent.value
-            is Intent.SetZipEncryption -> savedStateHandle["zipEncryption"] = intent.value
+            is Intent.SetZipEncryption -> {
+                savedStateHandle["zipEncryption"] = intent.value
+                if (intent.value == ZipEncryption.NONE) {
+                    savedStateHandle["useDoubleZipping"] = false
+                }
+            }
+            is Intent.SetUseDoubleZipping -> {
+                if (_zipEncryption.value != ZipEncryption.NONE) {
+                    savedStateHandle["useDoubleZipping"] = intent.value
+                } else {
+                    savedStateHandle["useDoubleZipping"] = false
+                }
+            }
             is Intent.SetIgnoreExcludeList -> savedStateHandle["ignoreExcludeList"] = intent.value
             is Intent.SelectService -> {
                 _selectedService.value = intent.service

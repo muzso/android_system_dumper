@@ -4,8 +4,8 @@ import com.google.common.truth.Truth.assertThat
 import hu.muzso.android_system_dumper.common.NetworkUtils
 import hu.muzso.android_system_dumper.model.ZipEncryption
 import hu.muzso.android_system_dumper.model.upload.UploadParameters
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.platform.ResourceProvider
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Before
@@ -102,6 +102,7 @@ class ValidateUploadUseCaseTest {
         shouldUploadAppLogs = true,
         zipEncryption = ZipEncryption.NONE,
         selectedService = uploadRepository,
-        maxBatches = 0
+        maxBatches = 0,
+        useDoubleZipping = false
     )
 }

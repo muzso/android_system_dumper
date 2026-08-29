@@ -60,11 +60,11 @@ class ZipIntegrationTest {
         file2.writeText("content 2")
 
         val outputZip = File(root, "output.zip")
-        val password = "test-password"
+        val passphrase = "test-passphrase"
         val options = ZipOptions(
             outputFilePath = outputZip.absolutePath,
             encryptionMethod = ZipEncryption.STANDARD,
-            password = password.toCharArray(),
+            passphrase = passphrase.toCharArray(),
             compressionMethod = CompressionMethod.DEFLATE,
             compressionLevel = CompressionLevel.NORMAL
         )
@@ -84,7 +84,7 @@ class ZipIntegrationTest {
         assertThat(zipFileResult.exists()).isTrue()
         assertThat(zipFileResult.absolutePath).isEqualTo(outputZip.absolutePath)
 
-        val zipFile = ZipFile(zipFileResult, password.toCharArray())
+        val zipFile = ZipFile(zipFileResult, passphrase.toCharArray())
         assertThat(zipFile.isValidZipFile).isTrue()
         assertThat(zipFile.isEncrypted).isTrue()
 
@@ -114,7 +114,7 @@ class ZipIntegrationTest {
         val options = ZipOptions(
             outputFilePath = outputZip.absolutePath,
             encryptionMethod = ZipEncryption.NONE,
-            password = null,
+            passphrase = null,
             compressionMethod = CompressionMethod.DEFLATE,
             compressionLevel = CompressionLevel.FASTEST
         )

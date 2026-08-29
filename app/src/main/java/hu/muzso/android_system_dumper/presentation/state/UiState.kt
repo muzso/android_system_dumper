@@ -3,7 +3,7 @@ package hu.muzso.android_system_dumper.presentation.state
 import android.graphics.Bitmap
 import hu.muzso.android_system_dumper.model.IpInfo
 import hu.muzso.android_system_dumper.model.ZipEncryption
-import hu.muzso.android_system_dumper.upload.network.UploadRepository
+import hu.muzso.android_system_dumper.network.upload.UploadRepository
 
 data class SettingsUiState(
     val customBatchSizeMb: String = "200",
@@ -18,6 +18,7 @@ data class SettingsUiState(
     val shouldUploadGetprop: Boolean = false,
     val shouldUploadAppLogs: Boolean = false,
     val zipEncryption: ZipEncryption = ZipEncryption.STANDARD,
+    val useDoubleZipping: Boolean = false,
     val ignoreExcludeList: Boolean = false,
     val selectedService: UploadRepository? = null,
     val services: List<UploadRepository> = emptyList(),
@@ -30,9 +31,59 @@ data class SettingsUiState(
 
 sealed class AppState {
     object MainScreen : AppState()
-    data class QrCodeScreen(val qrcodeText: String) : AppState()
+    data class QrCodeScreen(val qrcodeText: String, val previousState: AppState) : AppState()
     object HelpScreen : AppState()
     object IpInfoScreen : AppState()
+    object DownloadScreen : AppState()
+}
+
+data class DownloadUiState(
+    val serverPort: Int = 0,
+    val localIps: List<String> = emptyList(),
+    val selectedIp: String = "",
+    val qrBitmap: Bitmap? = null,
+    val successCount: Int = 0,
+    val totalCount: Int = 0,
+    val currentFileName: String = "",
+    val currentBytes: Long = 0,
+    val totalBytes: Long = 0,
+    val statusText: String = "",
+    val totalDownloadedBytes: Long = 0,
+    val isFinished: Boolean = false,
+    val generatedPassphrase: String? = null
+)
+
+sealed interface DownloadResult {
+    data class ServerStarted(val port: Int, val localIps: List<String>, val passphrase: String?) : DownloadResult
+    data class IpSelected(val ip: String, val qrBitmap: Bitmap?) : DownloadResult
+    data class ProgressUpdated(val progress: hu.muzso.android_system_dumper.model.download.DownloadProgress) : DownloadResult
+    object Reset : DownloadResult
+}
+
+fun reduce(state: DownloadUiState, result: DownloadResult): DownloadUiState {
+    return when (result) {
+        is DownloadResult.ServerStarted -> state.copy(
+            serverPort = result.port,
+            localIps = result.localIps,
+            selectedIp = result.localIps.firstOrNull() ?: "",
+            generatedPassphrase = result.passphrase
+        )
+        is DownloadResult.IpSelected -> state.copy(
+            selectedIp = result.ip,
+            qrBitmap = result.qrBitmap
+        )
+        is DownloadResult.ProgressUpdated -> state.copy(
+            successCount = result.progress.successCount,
+            totalCount = result.progress.totalCount,
+            currentFileName = result.progress.currentFileName,
+            currentBytes = result.progress.currentBytes,
+            totalBytes = result.progress.totalBytes,
+            statusText = result.progress.statusText,
+            totalDownloadedBytes = result.progress.totalDownloadedBytes,
+            isFinished = result.progress.isFinished
+        )
+        DownloadResult.Reset -> DownloadUiState()
+    }
 }
 
 sealed class IpInfoUiState {
@@ -49,7 +100,7 @@ data class UploadUiState(
     val isUploading: Boolean = false,
     val uploadStatusText: String = "",
     val downloadUrl: String? = null,
-    val generatedPassword: String? = null,
+    val generatedPassphrase: String? = null,
     val qrBitmap: Bitmap? = null
 )
 
@@ -62,7 +113,7 @@ sealed interface UploadResult {
     data class UploadFinished(
         val downloadUrl: String?,
         val uploadedZips: Int,
-        val password: String?,
+        val passphrase: String?,
         val statusText: String
     ) : UploadResult
     object UploadError : UploadResult
@@ -78,7 +129,7 @@ fun reduce(state: UploadUiState, result: UploadResult): UploadUiState {
             downloadUrl = null,
             uploadedZips = 0,
             totalZips = 0,
-            generatedPassword = null,
+            generatedPassphrase = null,
             currentZipUploadBytes = 0L,
             currentZipTotalBytes = 0L
         )
@@ -93,7 +144,7 @@ fun reduce(state: UploadUiState, result: UploadResult): UploadUiState {
             isUploading = false,
             downloadUrl = result.downloadUrl,
             uploadedZips = result.uploadedZips,
-            generatedPassword = result.password,
+            generatedPassphrase = result.passphrase,
             uploadStatusText = result.statusText
         )
         UploadResult.UploadError -> state.copy(isUploading = false)

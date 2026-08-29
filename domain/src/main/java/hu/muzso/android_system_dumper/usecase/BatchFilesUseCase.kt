@@ -1,6 +1,6 @@
 package hu.muzso.android_system_dumper.usecase
 
-import hu.muzso.android_system_dumper.upload.BatchingLogic
+import hu.muzso.android_system_dumper.network.BatchingLogic
 
 class BatchFilesUseCase(
     private val batchingLogic: BatchingLogic

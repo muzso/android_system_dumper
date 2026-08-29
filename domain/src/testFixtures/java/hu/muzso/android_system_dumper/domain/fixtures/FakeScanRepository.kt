@@ -25,7 +25,7 @@ class FakeScanRepository : ScanRepository {
         statuses = newStatuses
     }
 
-    override fun scan(ignoreExcludeList: Boolean): Flow<ScanStatus> {
+    override fun scan(ignoreExcludeList: Boolean, fileCountLimit: Int): Flow<ScanStatus> {
         lastIgnoreExcludeList = ignoreExcludeList
         return statuses.asFlow()
     }

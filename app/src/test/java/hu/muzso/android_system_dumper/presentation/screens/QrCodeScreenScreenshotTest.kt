@@ -4,8 +4,10 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
+import hu.muzso.android_system_dumper.platform.DefaultQrGenerator
 import hu.muzso.android_system_dumper.presentation.RoborazziTestConfigRule
 import hu.muzso.android_system_dumper.presentation.ScreenshotTestTheme
+import io.mockk.mockk
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,15 +26,18 @@ class QrCodeScreenScreenshotTest {
     @get:Rule
     val roborazziRule = RoborazziTestConfigRule()
 
+    private val qrGenerator = DefaultQrGenerator(mockk(relaxed = true))
+    private val url = "https://example.com/"
+
     @Test
     fun qrCodeScreen_content() {
+        val bitmap = qrGenerator.generateQrCode(url, 512)
         composeTestRule.setContent {
             ScreenshotTestTheme {
                 QrCodeContent(
-                    text = "https://muzso.hu",
-                    qrBitmap = null, // Can't easily mock Bitmap in unit tests without extra setup, testing structure
-                    onBack = {}
-                )
+                    text = url,
+                    qrBitmap = bitmap,
+                ) { }
             }
         }
         composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/qr_code_screen.png")
@@ -40,13 +45,13 @@ class QrCodeScreenScreenshotTest {
 
     @Test
     fun qrCodeScreen_content_dark() {
+        val bitmap = qrGenerator.generateQrCode(url, 512)
         composeTestRule.setContent {
             ScreenshotTestTheme(darkTheme = true) {
                 QrCodeContent(
-                    text = "https://muzso.hu",
-                    qrBitmap = null,
-                    onBack = {}
-                )
+                    text = url,
+                    qrBitmap = bitmap,
+                ) { }
             }
         }
         composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/qr_code_screen_dark.png")
