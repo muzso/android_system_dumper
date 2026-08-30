@@ -9,7 +9,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - A number of the app's configuration parameters (useful for testing and development) can now be defined in the `local.properties` or the `.env` file.
-- New file transfer method: downloads from an HTTP server. It's much faster and doesn't involve any third-parties, just two devices on the same LAN (e.g. Wi-Fi).
 - The readme now links to two YouTube videos that demonstrate both file transfer methods.
 - The IpInfoScreen didn't have a screenshot test, until now.
 
