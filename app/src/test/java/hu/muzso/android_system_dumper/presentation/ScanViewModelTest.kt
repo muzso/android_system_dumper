@@ -1,6 +1,7 @@
 package hu.muzso.android_system_dumper.presentation
 
 import com.google.common.truth.Truth.assertThat
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.model.ScanAction
 import hu.muzso.android_system_dumper.model.ScanStatus
 import hu.muzso.android_system_dumper.usecase.ScanSystemUseCase
@@ -24,6 +25,7 @@ import org.junit.Test
 class ScanViewModelTest {
 
     private val scanSystemUseCase = mockk<ScanSystemUseCase>(relaxed = true)
+    private val appConfig = mockk<AppConfig>(relaxed = true)
 
     private lateinit var viewModel: ScanViewModel
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -35,7 +37,7 @@ class ScanViewModelTest {
         every { scanSystemUseCase.filesCount } returns MutableStateFlow(0)
         every { scanSystemUseCase.totalBytes } returns MutableStateFlow(0L)
         
-        viewModel = ScanViewModel(scanSystemUseCase)
+        viewModel = ScanViewModel(scanSystemUseCase, appConfig)
     }
 
     @After

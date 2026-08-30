@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-08-30
+
+### Added
+
+- A number of the app's configuration parameters (useful for testing and development) can now be defined in the `local.properties` or the `.env` file.
+- New file transfer method: downloads from an HTTP server. It's much faster and doesn't involve any third-parties, just two devices on the same LAN (e.g. Wi-Fi).
+- The readme now links to two YouTube videos that demonstrate both file transfer methods.
+
+### Changes
+
+- The "(ZIP) password" expression was changed to "(ZIP) passphrase" throughout the app.
+- The "IP" icon in the top-right corner of the main screen has been renamed to "TOR", because it doesn't give information about the app's external IP address since Tor connects with a different exit node to every hostname.
+
+### Removed
+
+- The "Is Tor Node" property has been removed from the Tor Checker screen's (JSON) content, because it didn't actually apply to the given GeoIP service's connection, it merely showed whether the Tor checker endpoint was reached through a Tor exit node.
+
 ## [1.1.0] - 2026-08-29
 
 ### Added
@@ -45,6 +62,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial release (feature complete and mostly stable)
 
+[1.1.1]: https://github.com/muzso/android_system_dumper/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/muzso/android_system_dumper/compare/1.0.1...1.1.0
 [1.0.1]: https://github.com/muzso/android_system_dumper/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/muzso/android_system_dumper/releases/tag/1.0.0

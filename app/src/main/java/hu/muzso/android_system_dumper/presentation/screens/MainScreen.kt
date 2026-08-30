@@ -246,7 +246,7 @@ fun MainScreenContent(
                 actions = {
                     IconButton(onClick = onNavigateToIpInfo) {
                         Text(
-                            text = "IP",
+                            text = "TOR",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant

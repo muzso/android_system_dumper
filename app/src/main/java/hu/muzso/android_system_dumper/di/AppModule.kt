@@ -8,6 +8,8 @@ import hu.muzso.android_system_dumper.common.DefaultDispatcherProvider
 import hu.muzso.android_system_dumper.common.DefaultRandomProvider
 import hu.muzso.android_system_dumper.common.DispatcherProvider
 import hu.muzso.android_system_dumper.common.RandomProvider
+import hu.muzso.android_system_dumper.config.AppConfig
+import hu.muzso.android_system_dumper.config.DefaultAppConfig
 import hu.muzso.android_system_dumper.network.upload.DefaultTorChecker
 import hu.muzso.android_system_dumper.network.upload.TorChecker
 import hu.muzso.android_system_dumper.platform.AndroidXmlParser
@@ -21,6 +23,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AppModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindAppConfig(impl: DefaultAppConfig): AppConfig
 
     @Binds
     @Singleton

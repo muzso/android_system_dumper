@@ -5,9 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.muzso.android_system_dumper.BuildConfig
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.common.PlatformUtils
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.logging.FileLogger
 import hu.muzso.android_system_dumper.model.UploadError
 import hu.muzso.android_system_dumper.model.ZipEncryption
@@ -42,7 +42,8 @@ class UploadViewModel @Inject constructor(
     private val logger: FileLogger,
     private val validateUploadUseCase: ValidateUploadUseCase,
     private val uploadArchiveUseCase: UploadArchiveUseCase,
-    private val generateQrUseCase: GenerateQrUseCase
+    private val generateQrUseCase: GenerateQrUseCase,
+    private val appConfig: AppConfig
 ) : ViewModel() {
 
     companion object {
@@ -141,7 +142,7 @@ class UploadViewModel @Inject constructor(
             zipEncryption = settings.zipEncryption,
             useDoubleZipping = settings.useDoubleZipping,
             selectedService = settings.selectedService,
-            maxBatches = BuildConfig.BATCH_LIMIT
+            maxBatches = appConfig.batchLimit
         )
 
         logger.i(TAG, "startUploading: parameters=$parameters")

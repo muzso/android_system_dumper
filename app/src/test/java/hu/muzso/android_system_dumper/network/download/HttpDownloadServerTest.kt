@@ -3,6 +3,7 @@ package hu.muzso.android_system_dumper.network.download
 import app.cash.turbine.test
 import hu.muzso.android_system_dumper.common.Clock
 import hu.muzso.android_system_dumper.common.PlatformUtils
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.domain.fixtures.FakeUploadRepository
 import hu.muzso.android_system_dumper.logging.FileLogger
 import hu.muzso.android_system_dumper.model.DomainResult
@@ -42,12 +43,13 @@ class HttpDownloadServerTest {
     private val logger = mockk<FileLogger>(relaxed = true)
     private val platformUtils = mockk<PlatformUtils>()
     private val resourceProvider = mockk<ResourceProvider>()
+    private val appConfig = mockk<AppConfig>(relaxed = true)
 
     private lateinit var server: HttpDownloadServer
 
     @Before
     fun setup() {
-        server = HttpDownloadServer(archiveGenerator, clock, logger, platformUtils, resourceProvider)
+        server = HttpDownloadServer(archiveGenerator, clock, logger, platformUtils, resourceProvider, appConfig)
         every { resourceProvider.getString(any()) } returns "test_string"
         every { clock.monotonicTime() } returns 0L
     }

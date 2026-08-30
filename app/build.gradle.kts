@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.hilt)
@@ -8,6 +10,20 @@ plugins {
   alias(libs.plugins.kover)
 }
 
+// Load properties from .env and local.properties
+val projectConfig = Properties().apply {
+  // Order matters: later files override earlier ones
+  listOf("local.properties", ".env").forEach { fileName ->
+    val file = rootProject.file(fileName)
+    if (file.exists()) {
+      file.inputStream().use { load(it) }
+    }
+  }
+}
+fun getConfig(key: String, default: String): String {
+  return projectConfig.getProperty(key) ?: System.getenv(key) ?: default
+}
+
 android {
   namespace = "hu.muzso.android_system_dumper"
   compileSdk = 37
@@ -16,6 +32,12 @@ android {
     minSdk = 26
 
     testInstrumentationRunner = "hu.muzso.android_system_dumper.HiltTestRunner"
+
+    // For demonstration purposes you can hardwire the IP address (that is shown on screen) here:
+    buildConfigField("String", "HTTP_SERVER_IP_ADDRESS", "\"${getConfig("HTTP_SERVER_IP_ADDRESS", "")}\"")
+    // And the TCP port that the HTTP server listens on:
+    buildConfigField("int", "HTTP_SERVER_TCP_PORT", getConfig("HTTP_SERVER_TCP_PORT", "0"))
+    // Useful if e.g. you run this app in an emulator and you can reach it only through port forwarding.
 
     // The third-party TorService requires this.
     // See: https://github.com/guardianproject/tor-android/blob/master/sampletorapp/build.gradle.kts
@@ -45,14 +67,14 @@ android {
       isMinifyEnabled = false
       isShrinkResources = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      buildConfigField("int", "BATCH_LIMIT", "0")
-      buildConfigField("int", "FILE_COUNT_LIMIT", "0")
-      buildConfigField("boolean", "LOG_TO_SYSTEM", "false")
+      buildConfigField("int", "BATCH_LIMIT", getConfig("BATCH_LIMIT", "0"))
+      buildConfigField("int", "FILE_COUNT_LIMIT", getConfig("FILE_COUNT_LIMIT", "0"))
+      buildConfigField("boolean", "LOG_TO_SYSTEM", getConfig("LOG_TO_SYSTEM", "false"))
     }
     debug {
-      buildConfigField("int", "BATCH_LIMIT", "1")
-      buildConfigField("int", "FILE_COUNT_LIMIT", "1000")
-      buildConfigField("boolean", "LOG_TO_SYSTEM", "true")
+      buildConfigField("int", "BATCH_LIMIT", getConfig("BATCH_LIMIT", "1"))
+      buildConfigField("int", "FILE_COUNT_LIMIT", getConfig("FILE_COUNT_LIMIT", "1000"))
+      buildConfigField("boolean", "LOG_TO_SYSTEM", getConfig("LOG_TO_SYSTEM", "true"))
     }
   }
   compileOptions {
@@ -86,6 +108,11 @@ ksp {
 secrets {
   propertiesFileName = ".env"
   defaultPropertiesFileName = ".env.example"
+  ignoreList.add("HTTP_SERVER_IP_ADDRESS")
+  ignoreList.add("HTTP_SERVER_TCP_PORT")
+  ignoreList.add("BATCH_LIMIT")
+  ignoreList.add("FILE_COUNT_LIMIT")
+  ignoreList.add("LOG_TO_SYSTEM")
 }
 
 kover {

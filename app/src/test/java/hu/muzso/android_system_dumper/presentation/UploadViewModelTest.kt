@@ -6,6 +6,7 @@ import com.google.common.truth.Truth.assertThat
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.common.DispatcherProvider
 import hu.muzso.android_system_dumper.common.PlatformUtils
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.domain.fixtures.FakeFileLogger
 import hu.muzso.android_system_dumper.domain.fixtures.FakeScanRepository
 import hu.muzso.android_system_dumper.model.FileEntry
@@ -48,6 +49,7 @@ class UploadViewModelTest {
     private val validateUploadUseCase = mockk<ValidateUploadUseCase>()
     private val uploadArchiveUseCase = mockk<UploadArchiveUseCase>()
     private val generateQrUseCase = mockk<GenerateQrUseCase>()
+    private val appConfig = mockk<AppConfig>(relaxed = true)
 
     private lateinit var viewModel: UploadViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -264,7 +266,8 @@ class UploadViewModelTest {
         viewModel = UploadViewModel(
             resourceProvider, uiMessenger, platformUtils,
             savedStateHandle, repository, logger,
-            validateUploadUseCase, uploadArchiveUseCase, generateQrUseCase
+            validateUploadUseCase, uploadArchiveUseCase, generateQrUseCase,
+            appConfig
         )
     }
 

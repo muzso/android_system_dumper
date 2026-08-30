@@ -13,7 +13,7 @@ This is a vulnerability research helper tool designed to collect and securely sh
 - **Anonymous uploading**: Integrated support for the **Tor** network (through the Guardian Project's [tor-android](https://github.com/guardianproject/tor-android) and [jtorctl](https://github.com/torproject/jtorctl)) allows anonymous upload of dumps to services like [Gofile](https://gofile.io/) and [Filebin](https://filebin.net/).
 - **IP privacy verification**:
   - If "Use Tor network" is selected, a request to https://check.torproject.org/api/ip automatically verifies at the start of uploads that all requests are actually routed through the Tor network. Upload is canceled if this check fails.
-  - The IP information checker screen allows you to "manually" verify that traffic is correctly routed through the Tor network (using third-party GeoIP services like [json.geoiplookup.io](https://json.geoiplookup.io/) and [ipwho.is](https://ipwho.is/)). Also, the "Is Tor Node" item shows the result of the https://check.torproject.org/api/ip request.
+  - The Tor Checker screen allows you to "manually" verify that traffic is correctly routed through the Tor network (using third-party GeoIP services like [json.geoiplookup.io](https://json.geoiplookup.io/) and [ipwho.is](https://ipwho.is/)). The Tor service uses different circuits for every host you connect to, so it's very likely that the file sharing services will see a different exit node than what these GeoIP services see. 
 - **HTTP Server**: for the (direct) device <-> device file transfers an HTTP Server is started and the URL (to connect to) is presented via QR code.
 - **QR code sharing**: Generates QR codes (using [ZXing](https://github.com/zxing/zxing)) for the download URL and the ZIP encryption passphrase (useful on devices where these would be difficult to export otherwise, such as devices running AAOS).
 - **Modular architecture**: Built with Clean Architecture principles (including Google's [architecture guidelines](https://developer.android.com/topic/architecture)) to ensure scalability and maintainability.
@@ -41,6 +41,16 @@ The app provides two ways to get the ZIP archives off the device:
 The default settings of the app provide reasonable privacy for the upload scenario. If you want maximum privacy, enable the "Use double-zipping" option so the file sharing service cannot look into the ZIPs and see the file listings (paths, file names).
 
 Note: double-zipping means that collected files are first packaged into a plain (i.e. not encrypted) ZIP with compression, then this ZIP is packaged into another ZIP with encryption and no compression. Based on my tests double-zipping is not slower in upload scenarios and the difference in running time for downloads is negligible (e.g. 62s vs. 57s).
+
+## Demo
+
+Here's a video of the upload process:
+
+[![Uploading](site/upload_screenshot.png)](https://www.youtube.com/watch?v=pLTHb3tS4JM)
+
+And here's a video of the download process, showing the side-by-side screens of an emulated target device and a phone (used as a downloader):
+
+[![Downloading](site/download_screenshot.png)](https://www.youtube.com/watch?v=74clsOLNL2E)
 
 ## Prerequisites
 

@@ -64,7 +64,7 @@
 • Application logs (logs.txt): Control if logs (of this application) should be uploaded.
 • File sharing service: Select the service to upload to.\n\n
 • Proxy: Specify a proxy for HTTP requests. Can be an HTTP proxy (start with \"http://\") or a SOCKS proxy (either start with \"socks://\" or with the IP address or hostname). If you only enter a (TCP) port number, a SOCKS proxy will be assumed to listen on localhost (127.0.0.1) and the entered port.\n\n
-• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections through Tor and/or the upload speed might be a lot slower. Toggling this off and on rebuilds the Tor circuits, thus you\'ll probably end up with different exit nodes.\n\n
+• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections from Tor and/or the upload speed might be a lot slower. Toggling this off and on rebuilds the Tor circuits, thus you\'ll probably end up with a different exit node (i.e. public IP).\n\n
 </string>
     <string name="help_features_title">Features</string>
     <string name="help_features_description">• Cancellation scope: Hit \"Stop\" during the scan or upload phase to preserve and proceed with whatever has been already processed.\n\n
@@ -117,4 +117,5 @@ Accepted formats are:\n
     <string name="tor_is_running">Tor is running</string>
     <string name="tor_notification_channel_name">Tor Network</string>
     <string name="copy_passphrase_to_clipboard">Copy passphrase to clipboard</string>
+    <string name="tor_checker_screen">Tor Checker</string>
 </resources>

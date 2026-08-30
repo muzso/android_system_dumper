@@ -7,7 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import hu.muzso.android_system_dumper.BuildConfig
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.logging.AndroidFileLogger
 import hu.muzso.android_system_dumper.logging.AndroidSystemLogSink
 import hu.muzso.android_system_dumper.logging.FileLogger
@@ -44,6 +44,6 @@ abstract class LoggingModule {
 
         @Provides
         @LogToSystem
-        fun provideLogToSystem(): Boolean = BuildConfig.LOG_TO_SYSTEM
+        fun provideLogToSystem(appConfig: AppConfig): Boolean = appConfig.logToSystem
     }
 }

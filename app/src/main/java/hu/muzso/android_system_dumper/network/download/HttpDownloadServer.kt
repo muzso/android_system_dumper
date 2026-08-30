@@ -3,6 +3,7 @@ package hu.muzso.android_system_dumper.network.download
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.common.Clock
 import hu.muzso.android_system_dumper.common.PlatformUtils
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.logging.FileLogger
 import hu.muzso.android_system_dumper.model.DomainResult
 import hu.muzso.android_system_dumper.model.ScanResult
@@ -66,7 +67,8 @@ class HttpDownloadServer @Inject constructor(
     private val clock: Clock,
     private val logger: FileLogger,
     private val platformUtils: PlatformUtils,
-    private val resourceProvider: ResourceProvider
+    private val resourceProvider: ResourceProvider,
+    private val appConfig: AppConfig
 ) {
     private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? = null
     private var port: Int = 0
@@ -91,7 +93,11 @@ class HttpDownloadServer @Inject constructor(
         if (server != null) return port
 
         prepareState(parameters, scanResult)
-        port = (16384..32767).random()
+        port = if (appConfig.httpServerTcpPort == 0) {
+            (16384..32767).random()
+        } else {
+            appConfig.httpServerTcpPort
+        }
 
         server = embeddedServer(Netty, port = port, host = "0.0.0.0") {
             configureServer(this, parameters)

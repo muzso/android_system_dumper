@@ -5,7 +5,6 @@ import hu.muzso.android_system_dumper.common.DispatcherProvider
 import hu.muzso.android_system_dumper.common.NetworkUtils
 import hu.muzso.android_system_dumper.model.IpInfo
 import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
-import hu.muzso.android_system_dumper.network.upload.TorChecker
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import javax.inject.Inject
@@ -22,7 +21,6 @@ import javax.inject.Singleton
 class DefaultIpInfoRepository @Inject constructor(
     private val httpClientProvider: HttpClientProvider,
     private val moshi: Moshi,
-    private val torChecker: TorChecker,
     private val networkUtils: NetworkUtils,
     private val dispatcherProvider: DispatcherProvider
 ) : IpInfoRepository {
@@ -47,14 +45,7 @@ class DefaultIpInfoRepository @Inject constructor(
                         @Suppress("UNCHECKED_CAST")
                         val jsonMap = moshi.adapter(Map::class.java).fromJson(body) as? Map<String, Any>
                         if (isValid(jsonMap)) {
-                            val isTor = try {
-                                torChecker.check()
-                            } catch (_: Exception) {
-                                false
-                            }
-                            val mutableMap = jsonMap!!.toMutableMap()
-                            mutableMap["is_tor_node"] = isTor
-                            val preparedData = prepareData(mutableMap)
+                            val preparedData = prepareData(jsonMap!!)
                             return@withContext Result.success(IpInfo(url, preparedData))
                         } else {
                             failures.add("${failurePrefix}HTTP response did not contain valid JSON")

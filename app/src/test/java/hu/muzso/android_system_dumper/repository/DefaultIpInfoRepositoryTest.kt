@@ -5,8 +5,6 @@ import com.squareup.moshi.Moshi
 import hu.muzso.android_system_dumper.common.DefaultNetworkUtils
 import hu.muzso.android_system_dumper.domain.fixtures.FakeDispatcherProvider
 import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
-import hu.muzso.android_system_dumper.network.upload.TorChecker
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -24,7 +22,6 @@ class DefaultIpInfoRepositoryTest {
     private lateinit var server: MockWebServer
     private lateinit var repository: DefaultIpInfoRepository
     private val moshi = Moshi.Builder().build()
-    private val torChecker = mockk<TorChecker>()
     private val httpClientProvider = mockk<HttpClientProvider>()
     private val okHttpClient = OkHttpClient()
     private val networkUtils = DefaultNetworkUtils()
@@ -39,9 +36,8 @@ class DefaultIpInfoRepositoryTest {
         server.start()
         
         every { httpClientProvider.getClient() } returns okHttpClient
-        coEvery { torChecker.check() } returns false
-        
-        repository = DefaultIpInfoRepository(httpClientProvider, moshi, torChecker, networkUtils, dispatcherProvider)
+
+        repository = DefaultIpInfoRepository(httpClientProvider, moshi, networkUtils, dispatcherProvider)
     }
 
     @After

@@ -2,6 +2,7 @@ package hu.muzso.android_system_dumper.presentation
 
 import com.google.common.truth.Truth
 import hu.muzso.android_system_dumper.common.NetworkUtils
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.model.ScanResult
 import hu.muzso.android_system_dumper.model.upload.UploadParameters
 import hu.muzso.android_system_dumper.network.ArchiveGenerator
@@ -21,13 +22,15 @@ class DownloadViewModelTest {
     private val generateQrUseCase = mockk<GenerateQrUseCase>()
     private val scanRepository = mockk<ScanRepository>()
     private val archiveGenerator = mockk<ArchiveGenerator>()
+    private val appConfig = mockk<AppConfig>()
 
     private lateinit var viewModel: DownloadViewModel
 
     @Before
     fun setup() {
         every { downloadServer.progress } returns MutableStateFlow(null)
-        viewModel = DownloadViewModel(downloadServer, networkUtils, generateQrUseCase, scanRepository, archiveGenerator)
+        every { appConfig.httpServerIpAddress } returns ""
+        viewModel = DownloadViewModel(downloadServer, networkUtils, generateQrUseCase, scanRepository, archiveGenerator, appConfig)
     }
 
     @Test
@@ -46,6 +49,22 @@ class DownloadViewModelTest {
         Truth.assertThat(viewModel.uiState.value.serverPort).isEqualTo(12345)
         Truth.assertThat(viewModel.uiState.value.selectedIp).isEqualTo("192.168.1.1")
         Truth.assertThat(viewModel.uiState.value.generatedPassphrase).isEqualTo("test_passphrase")
+    }
+
+    @Test
+    fun `startServer uses IP address from configuration if provided`() {
+        val params = mockk<UploadParameters>()
+        val scanResult = mockk<ScanResult>()
+        every { scanRepository.scanResult.value } returns scanResult
+        every { downloadServer.start(params, scanResult) } returns 12345
+        every { appConfig.httpServerIpAddress } returns "10.10.10.10"
+        every { generateQrUseCase.execute(any(), any()) } returns null
+        every { archiveGenerator.getEncryptionPassphrase() } returns "test_passphrase"
+
+        viewModel.startServer(params)
+
+        Truth.assertThat(viewModel.uiState.value.selectedIp).isEqualTo("10.10.10.10")
+        verify(exactly = 0) { networkUtils.getLocalIPv4Addresses() }
     }
 
     @Test

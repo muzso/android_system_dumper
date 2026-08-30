@@ -74,10 +74,11 @@ fun IpInfoContent(
     onSourceSelected: (String) -> Unit,
     onBack: () -> Unit
 ) {
+    val torCheckerScreenTitle = stringResource(R.string.tor_checker_screen)
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("IP Information") },
+                title = { Text(torCheckerScreenTitle) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.muzso.android_system_dumper.common.NetworkUtils
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.model.upload.UploadParameters
 import hu.muzso.android_system_dumper.network.ArchiveGenerator
 import hu.muzso.android_system_dumper.network.download.HttpDownloadServer
@@ -29,7 +30,8 @@ class DownloadViewModel @Inject constructor(
     private val networkUtils: NetworkUtils,
     private val generateQrUseCase: GenerateQrUseCase,
     private val scanRepository: ScanRepository,
-    private val archiveGenerator: ArchiveGenerator
+    private val archiveGenerator: ArchiveGenerator,
+    private val appConfig: AppConfig
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DownloadUiState())
@@ -54,7 +56,11 @@ class DownloadViewModel @Inject constructor(
         val scanResult = scanRepository.scanResult.value
         val port = downloadServer.start(parameters, scanResult)
         val passphrase = archiveGenerator.getEncryptionPassphrase()
-        val localIps = networkUtils.getLocalIPv4Addresses()
+        val localIps = if (appConfig.httpServerIpAddress.isEmpty()) {
+            networkUtils.getLocalIPv4Addresses()
+        } else {
+            listOf(appConfig.httpServerIpAddress)
+        }
         _uiState.update { reduce(it, DownloadResult.ServerStarted(port, localIps, passphrase)) }
         if (localIps.isNotEmpty()) {
             selectIp(localIps.first())
