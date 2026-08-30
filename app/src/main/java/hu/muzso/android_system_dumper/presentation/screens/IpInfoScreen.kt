@@ -257,7 +257,6 @@ private fun IpInfoScreenPreview() {
                     data = mapOf(
                         "Ip" to "1.2.3.4",
                         "Country" to "Earth",
-                        "Is Tor Node" to false,
                         "Connection" to mapOf(
                             "Isp" to "Example ISP",
                             "Type" to "Fiber"

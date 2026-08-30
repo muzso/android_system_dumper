@@ -81,8 +81,7 @@ class DefaultIpInfoRepositoryTest {
         
         assertThat(data["Ip"]).isEqualTo("1.2.3.4")
         assertThat(data["City"]).isEqualTo("Budapest")
-        assertThat(data["Is Tor Node"]).isEqualTo(false)
-        
+
         val connection = data["Connection"] as Map<*, *>
         assertThat(connection["Asn"]).isEqualTo(12345L) // Verified integer fix
         assertThat(connection["Isp"]).isEqualTo("Test ISP")
