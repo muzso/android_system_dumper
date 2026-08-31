@@ -37,11 +37,7 @@ class PackagingPanelTest {
                     filesCount = 10,
                     onSetCustomBatchSizeMb = { batchSize.set(it) },
                     onSetShouldUploadZips = {},
-                    onSetShouldUploadReadableList = {},
-                    onSetShouldUploadUnreadableList = {},
-                    onSetShouldUploadExcludedList = {},
-                    onSetShouldUploadMissingList = {},
-                    onSetShouldUploadSymlinkList = {},
+                    onSetShouldUploadFileLists = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},
@@ -64,11 +60,7 @@ class PackagingPanelTest {
                     filesCount = 10,
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = {},
-                    onSetShouldUploadReadableList = {},
-                    onSetShouldUploadUnreadableList = {},
-                    onSetShouldUploadExcludedList = {},
-                    onSetShouldUploadMissingList = {},
-                    onSetShouldUploadSymlinkList = {},
+                    onSetShouldUploadFileLists = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},
@@ -91,11 +83,7 @@ class PackagingPanelTest {
                     filesCount = 10,
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = { toggled.set(it) },
-                    onSetShouldUploadReadableList = {},
-                    onSetShouldUploadUnreadableList = {},
-                    onSetShouldUploadExcludedList = {},
-                    onSetShouldUploadMissingList = {},
-                    onSetShouldUploadSymlinkList = {},
+                    onSetShouldUploadFileLists = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},
@@ -111,11 +99,7 @@ class PackagingPanelTest {
 
     @Test
     fun allUploadTogglesWork() {
-        val readable = AtomicBoolean(false)
-        val unreadable = AtomicBoolean(false)
-        val excluded = AtomicBoolean(false)
-        val missing = AtomicBoolean(false)
-        val symlink = AtomicBoolean(false)
+        val fileLists = AtomicBoolean(false)
         val getprop = AtomicBoolean(false)
         val applogs = AtomicBoolean(false)
 
@@ -123,11 +107,7 @@ class PackagingPanelTest {
             AndroidSystemDumperTheme {
                 PackagingPanel(
                     settingsUiState = SettingsUiState(
-                        shouldUploadReadableList = false,
-                        shouldUploadUnreadableList = false,
-                        shouldUploadExcludedList = false,
-                        shouldUploadMissingList = false,
-                        shouldUploadSymlinkList = false,
+                        shouldUploadFileLists = false,
                         shouldUploadGetprop = false,
                         shouldUploadAppLogs = false
                     ),
@@ -135,11 +115,7 @@ class PackagingPanelTest {
                     filesCount = 10,
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = {},
-                    onSetShouldUploadReadableList = { readable.set(it) },
-                    onSetShouldUploadUnreadableList = { unreadable.set(it) },
-                    onSetShouldUploadExcludedList = { excluded.set(it) },
-                    onSetShouldUploadMissingList = { missing.set(it) },
-                    onSetShouldUploadSymlinkList = { symlink.set(it) },
+                    onSetShouldUploadFileLists = { fileLists.set(it) },
                     onSetShouldUploadGetprop = { getprop.set(it) },
                     onSetShouldUploadAppLogs = { applogs.set(it) },
                     onSetZipEncryption = {},
@@ -149,19 +125,11 @@ class PackagingPanelTest {
             }
         }
 
-        composeTestRule.onNodeWithTag("switch_upload_readable").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_unreadable").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_excluded").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_missing").performClick()
-        composeTestRule.onNodeWithTag("switch_upload_symlink").performClick()
+        composeTestRule.onNodeWithTag("switch_upload_file_lists").performClick()
         composeTestRule.onNodeWithTag("switch_upload_getprop").performClick()
         composeTestRule.onNodeWithTag("switch_upload_applogs").performClick()
 
-        Truth.assertThat(readable.get()).isTrue()
-        Truth.assertThat(unreadable.get()).isTrue()
-        Truth.assertThat(excluded.get()).isTrue()
-        Truth.assertThat(missing.get()).isTrue()
-        Truth.assertThat(symlink.get()).isTrue()
+        Truth.assertThat(fileLists.get()).isTrue()
         Truth.assertThat(getprop.get()).isTrue()
         Truth.assertThat(applogs.get()).isTrue()
     }
@@ -176,11 +144,7 @@ class PackagingPanelTest {
                     filesCount = 10,
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = {},
-                    onSetShouldUploadReadableList = {},
-                    onSetShouldUploadUnreadableList = {},
-                    onSetShouldUploadExcludedList = {},
-                    onSetShouldUploadMissingList = {},
-                    onSetShouldUploadSymlinkList = {},
+                    onSetShouldUploadFileLists = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},
@@ -202,11 +166,7 @@ class PackagingPanelTest {
                     filesCount = 10,
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = {},
-                    onSetShouldUploadReadableList = {},
-                    onSetShouldUploadUnreadableList = {},
-                    onSetShouldUploadExcludedList = {},
-                    onSetShouldUploadMissingList = {},
-                    onSetShouldUploadSymlinkList = {},
+                    onSetShouldUploadFileLists = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},

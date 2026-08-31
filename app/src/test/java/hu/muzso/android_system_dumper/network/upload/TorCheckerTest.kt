@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import hu.muzso.android_system_dumper.R
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.domain.fixtures.FakeFileLogger
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import io.mockk.every
@@ -32,6 +33,7 @@ class TorCheckerTest {
     private lateinit var server: MockWebServer
     private lateinit var context: Context
     private val logger = FakeFileLogger()
+    private val appConfig = mockk<AppConfig>()
     private lateinit var httpClientProvider: HttpClientProvider
     private lateinit var retrofitBuilder: Retrofit.Builder
     private val retryPolicy = DefaultUploadRetryPolicy(logger)
@@ -41,7 +43,8 @@ class TorCheckerTest {
     fun setup() {
         server = MockWebServer()
         context = mockk<Context>(relaxed = true)
-        httpClientProvider = HttpClientProvider()
+        every { appConfig.networkTimeoutMs } returns 30000L
+        httpClientProvider = HttpClientProvider(appConfig)
 
         val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
         retrofitBuilder = Retrofit.Builder().addConverterFactory(MoshiConverterFactory.create(moshi))

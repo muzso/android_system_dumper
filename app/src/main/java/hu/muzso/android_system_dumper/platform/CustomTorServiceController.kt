@@ -33,6 +33,51 @@ class CustomTorServiceController @Inject constructor(
         }
     }
 
+    override suspend fun restartTorService(timeoutMs: Long): Boolean {
+        logger.i("CustomTorServiceController", "Restarting Tor service...")
+        
+        val stopSuccessful = withTimeoutOrNull(timeoutMs.milliseconds) {
+            suspendCancellableCoroutine<Boolean> { cont ->
+                val receiver = object : BroadcastReceiver() {
+                    override fun onReceive(context: Context?, intent: Intent?) {
+                        if (intent?.action == CustomTorService.ACTION_SERVICE_STOPPED) {
+                            try {
+                                context?.unregisterReceiver(this)
+                            } catch (e: Exception) {
+                                logger.w("CustomTorServiceController", "Failed to unregister stop receiver", e)
+                            }
+                            if (cont.isActive) cont.resume(true)
+                        }
+                    }
+                }
+                ContextCompat.registerReceiver(
+                    context,
+                    receiver,
+                    IntentFilter(CustomTorService.ACTION_SERVICE_STOPPED),
+                    ContextCompat.RECEIVER_NOT_EXPORTED
+                )
+                
+                appServiceManager.stopTorService()
+                
+                cont.invokeOnCancellation {
+                    try {
+                        context.unregisterReceiver(receiver)
+                    } catch (e: Exception) {
+                        logger.w("CustomTorServiceController", "Failed to unregister stop receiver on cancellation", e)
+                    }
+                }
+            }
+        } ?: false
+
+        if (!stopSuccessful) {
+            logger.w("CustomTorServiceController", "Timed out waiting for Tor service to stop")
+            // Try to start it anyway
+        }
+
+        appServiceManager.startTorService()
+        return waitForCircuit(timeoutMs)
+    }
+
     /**
      * Waits for a Tor circuit to be established, up to a specified timeout.
      * 
@@ -51,7 +96,8 @@ class CustomTorServiceController @Inject constructor(
                         if (intent?.action == CustomTorService.ACTION_CIRCUIT_ESTABLISHED) {
                             try {
                                 context?.unregisterReceiver(this)
-                            } catch (_: Exception) {
+                            } catch (e: Exception) {
+                                logger.w("CustomTorServiceController", "Failed to unregister circuit receiver", e)
                             }
                             if (cont.isActive) cont.resume(value = true)
                         }
@@ -67,7 +113,8 @@ class CustomTorServiceController @Inject constructor(
                 cont.invokeOnCancellation {
                     try {
                         context.unregisterReceiver(receiver)
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        logger.w("CustomTorServiceController", "Failed to unregister circuit receiver on cancellation", e)
                     }
                 }
             }

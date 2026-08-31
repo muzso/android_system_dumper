@@ -76,11 +76,7 @@ class ValidateUploadUseCaseTest {
     fun `execute returns NoUploadSelected when nothing is selected for upload`() {
         val parameters = createValidParameters().copy(
             shouldUploadZips = false,
-            shouldUploadReadableList = false,
-            shouldUploadUnreadableList = false,
-            shouldUploadExcludedList = false,
-            shouldUploadMissingList = false,
-            shouldUploadSymlinkList = false
+            shouldUploadFileLists = false
         )
 
         val result = useCase.execute(parameters)
@@ -93,11 +89,7 @@ class ValidateUploadUseCaseTest {
         proxySpecification = "localhost:8080",
         shouldUseTor = false,
         shouldUploadZips = true,
-        shouldUploadReadableList = true,
-        shouldUploadUnreadableList = true,
-        shouldUploadExcludedList = true,
-        shouldUploadMissingList = true,
-        shouldUploadSymlinkList = true,
+        shouldUploadFileLists = true,
         shouldUploadGetprop = true,
         shouldUploadAppLogs = true,
         zipEncryption = ZipEncryption.NONE,

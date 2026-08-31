@@ -63,4 +63,38 @@ class CustomTorServiceControllerTest {
         val result = torService.waitForCircuit(100)
         assertFalse(result)
     }
+
+    @Test
+    fun `restartTorService stops service, waits for stop, starts service and waits for circuit`() = runTest {
+        val waitJob = async {
+            torService.restartTorService(5000)
+        }
+
+        testScheduler.runCurrent()
+
+        // Verify stop was called
+        verify { appServiceManager.stopTorService() }
+
+        // Simulate service stopped broadcast
+        context.sendBroadcast(Intent(CustomTorService.ACTION_SERVICE_STOPPED).apply {
+            setPackage(context.packageName)
+        })
+
+        ShadowLooper.idleMainLooper()
+        testScheduler.runCurrent()
+
+        // Verify start was called
+        verify { appServiceManager.startTorService() }
+
+        // Simulate circuit established broadcast
+        context.sendBroadcast(Intent(CustomTorService.ACTION_CIRCUIT_ESTABLISHED).apply {
+            setPackage(context.packageName)
+        })
+
+        ShadowLooper.idleMainLooper()
+        testScheduler.runCurrent()
+
+        val result = waitJob.await()
+        assertTrue(result)
+    }
 }

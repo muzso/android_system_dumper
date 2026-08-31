@@ -84,6 +84,7 @@ fun MainScreen(
     val scanUiState by scanViewModel.uiState.collectAsStateWithLifecycle()
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val uploadUiState by uploadViewModel.uiState.collectAsStateWithLifecycle()
+    val noUploadServiceSelected = stringResource(R.string.no_upload_service_selected)
 
     MainScreenContent(
         scanUiState = scanUiState,
@@ -99,11 +100,7 @@ fun MainScreen(
         onSetProxySpecification = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetProxySpecification(it)) },
         onSetShouldUseTor = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUseTor(it)) },
         onSetShouldUploadZips = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadZips(it)) },
-        onSetShouldUploadReadableList = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadReadableList(it)) },
-        onSetShouldUploadUnreadableList = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadUnreadableList(it)) },
-        onSetShouldUploadExcludedList = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadExcludedList(it)) },
-        onSetShouldUploadMissingList = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadMissingList(it)) },
-        onSetShouldUploadSymlinkList = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadSymlinkList(it)) },
+        onSetShouldUploadFileLists = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadFileLists(it)) },
         onSetShouldUploadGetprop = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadGetprop(it)) },
         onSetShouldUploadAppLogs = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadAppLogs(it)) },
         onSetZipEncryption = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetZipEncryption(it)) },
@@ -117,11 +114,7 @@ fun MainScreen(
                     proxySpecification = settingsUiState.proxySpecification,
                     shouldUseTor = settingsUiState.shouldUseTor,
                     shouldUploadZips = settingsUiState.shouldUploadZips,
-                    shouldUploadReadableList = settingsUiState.shouldUploadReadableList,
-                    shouldUploadUnreadableList = settingsUiState.shouldUploadUnreadableList,
-                    shouldUploadExcludedList = settingsUiState.shouldUploadExcludedList,
-                    shouldUploadMissingList = settingsUiState.shouldUploadMissingList,
-                    shouldUploadSymlinkList = settingsUiState.shouldUploadSymlinkList,
+                    shouldUploadFileLists = settingsUiState.shouldUploadFileLists,
                     shouldUploadGetprop = settingsUiState.shouldUploadGetprop,
                     shouldUploadAppLogs = settingsUiState.shouldUploadAppLogs,
                     zipEncryption = settingsUiState.zipEncryption,
@@ -131,7 +124,7 @@ fun MainScreen(
                 )
                 uploadViewModel.processIntent(UploadViewModel.Intent.ToggleUploading(uploadSettings))
             } else {
-                showShortToast("No upload service selected")
+                showShortToast(noUploadServiceSelected)
             }
         },
         onStartHttpServer = onNavigateToDownload,
@@ -164,11 +157,7 @@ fun MainScreen(
  * @param onSetProxySpecification Callback to update the proxy configuration.
  * @param onSetShouldUseTor Callback to toggle the use of Tor for uploads.
  * @param onSetShouldUploadZips Callback to toggle uploading files bundled in ZIPs.
- * @param onSetShouldUploadReadableList Callback to toggle uploading the list of readable files.
- * @param onSetShouldUploadUnreadableList Callback to toggle uploading the list of unreadable files.
- * @param onSetShouldUploadExcludedList Callback to toggle uploading the list of excluded files.
- * @param onSetShouldUploadMissingList Callback to toggle uploading the list of missing files.
- * @param onSetShouldUploadSymlinkList Callback to toggle uploading the list of symlinks.
+ * @param onSetShouldUploadFileLists Callback to toggle uploading various file lists.
  * @param onSetShouldUploadGetprop Callback to toggle uploading system properties.
  * @param onSetShouldUploadAppLogs Callback to toggle uploading application logs.
  * @param onSetZipEncryption Callback to update the ZIP encryption method.
@@ -194,11 +183,7 @@ fun MainScreenContent(
     onSetProxySpecification: (String) -> Unit,
     onSetShouldUseTor: (Boolean) -> Unit,
     onSetShouldUploadZips: (Boolean) -> Unit,
-    onSetShouldUploadReadableList: (Boolean) -> Unit,
-    onSetShouldUploadUnreadableList: (Boolean) -> Unit,
-    onSetShouldUploadExcludedList: (Boolean) -> Unit,
-    onSetShouldUploadMissingList: (Boolean) -> Unit,
-    onSetShouldUploadSymlinkList: (Boolean) -> Unit,
+    onSetShouldUploadFileLists: (Boolean) -> Unit,
     onSetShouldUploadGetprop: (Boolean) -> Unit,
     onSetShouldUploadAppLogs: (Boolean) -> Unit,
     onSetZipEncryption: (ZipEncryption) -> Unit,
@@ -245,15 +230,16 @@ fun MainScreenContent(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onNavigateToIpInfo) {
+                        val ipInfoTitle = stringResource(R.string.ip_information_screen_icon)
                         Text(
-                            text = "TOR",
+                            text = ipInfoTitle,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(onClick = onShowHelp) {
-                        Icon(Icons.AutoMirrored.Filled.Help, contentDescription = "Help")
+                        Icon(Icons.AutoMirrored.Filled.Help, contentDescription = stringResource(R.string.help))
                     }
                     IconButton(onClick = onResetResults) {
                         Icon(
@@ -294,11 +280,7 @@ fun MainScreenContent(
                 filesCount = scanUiState.filesCount,
                 onSetCustomBatchSizeMb = onSetCustomBatchSizeMb,
                 onSetShouldUploadZips = onSetShouldUploadZips,
-                onSetShouldUploadReadableList = onSetShouldUploadReadableList,
-                onSetShouldUploadUnreadableList = onSetShouldUploadUnreadableList,
-                onSetShouldUploadExcludedList = onSetShouldUploadExcludedList,
-                onSetShouldUploadMissingList = onSetShouldUploadMissingList,
-                onSetShouldUploadSymlinkList = onSetShouldUploadSymlinkList,
+                onSetShouldUploadFileLists = onSetShouldUploadFileLists,
                 onSetShouldUploadGetprop = onSetShouldUploadGetprop,
                 onSetShouldUploadAppLogs = onSetShouldUploadAppLogs,
                 onSetZipEncryption = onSetZipEncryption,
@@ -324,17 +306,20 @@ fun MainScreenContent(
             val clipboard = LocalClipboard.current
             val uriHandler = LocalUriHandler.current
             val scope = rememberCoroutineScope()
+            val copiedToClipboardTemplate = stringResource(R.string.copied_to_clipboard)
+            val failedToCopyTemplate = stringResource(R.string.failed_to_copy)
 
             ResultsCard(
                 uploadUiState = uploadUiState,
                 shouldUseTor = settingsUiState.shouldUseTor,
                 onCopyText = { label, text ->
+                    val copiedToClipboard = copiedToClipboardTemplate.format(label)
                     scope.launch {
                         try {
                             clipboard.setClipEntry(ClipData.newPlainText(label, text).toClipEntry())
-                            showShortToast("$label copied to clipboard")
+                            showShortToast(copiedToClipboard)
                         } catch (_: Exception) {
-                            showShortToast("Failed to copy $label")
+                            showShortToast(failedToCopyTemplate.format(label))
                         }
                     }
                 },
@@ -367,11 +352,7 @@ private fun MainScreenContentPreview() {
             onSetProxySpecification = {},
             onSetShouldUseTor = {},
             onSetShouldUploadZips = {},
-            onSetShouldUploadReadableList = {},
-            onSetShouldUploadUnreadableList = {},
-            onSetShouldUploadExcludedList = {},
-            onSetShouldUploadMissingList = {},
-            onSetShouldUploadSymlinkList = {},
+            onSetShouldUploadFileLists = {},
             onSetShouldUploadGetprop = {},
             onSetShouldUploadAppLogs = {},
             onSetZipEncryption = {},

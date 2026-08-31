@@ -6,6 +6,7 @@ import javax.inject.Singleton
 
 @Singleton
 class DefaultAppConfig @Inject constructor() : AppConfig {
+    override val networkTimeoutMs: Long = BuildConfig.NETWORK_TIMEOUT_MS
     override val httpServerIpAddress: String = BuildConfig.HTTP_SERVER_IP_ADDRESS
     override val httpServerTcpPort: Int = BuildConfig.HTTP_SERVER_TCP_PORT
     override val batchLimit: Int = BuildConfig.BATCH_LIMIT

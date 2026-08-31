@@ -88,7 +88,7 @@ class UploadBatchUseCaseTest {
     }
 
     @Test
-    fun `Tor circuit rebuild triggered on failure when using Tor`() = runTest {
+    fun `Tor service restart triggered on failure when using Tor`() = runTest {
         val file = File("test.zip")
         val expectedError = UploadError.Unknown("Bad Gateway")
 
@@ -120,14 +120,14 @@ class UploadBatchUseCaseTest {
 
         assertThat(result).isInstanceOf(DomainResult.Error::class.java)
         
-        // Verify Tor rebuild was triggered via onFailure
-        assertThat(torService.rebuildCircuitCalls.get()).isEqualTo(1)
+        // Verify Tor restart was triggered via onFailure
+        assertThat(torService.restartTorServiceCalls.get()).isEqualTo(1)
         coVerify(exactly = 1) { torChecker.check() }
         coVerify(exactly = 1) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
     }
 
     @Test
-    fun `Failure without Tor does not trigger Tor rebuild`() = runTest {
+    fun `Failure without Tor does not trigger Tor restart`() = runTest {
         val file = File("test.zip")
 
         val blockSlot = slot<suspend () -> DomainResult<String, UploadError>>()
@@ -156,12 +156,12 @@ class UploadBatchUseCaseTest {
             onStatusUpdate = { _, _, _ -> }
         )
 
-        assertThat(torService.rebuildCircuitCalls.get()).isEqualTo(0)
+        assertThat(torService.restartTorServiceCalls.get()).isEqualTo(0)
         coVerify(exactly = 1) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
     }
 
     @Test
-    fun `Tor verification failure after rebuild aborts upload`() = runTest {
+    fun `Tor verification failure after restart aborts upload`() = runTest {
         val file = File("test.zip")
         val expectedError = UploadError.Unknown("Initial Fail")
 
@@ -200,7 +200,7 @@ class UploadBatchUseCaseTest {
         
         // Verify it stopped after 1 attempt because of TerminalUploadException
         coVerify(exactly = 1) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
-        assertThat(torService.rebuildCircuitCalls.get()).isEqualTo(1)
+        assertThat(torService.restartTorServiceCalls.get()).isEqualTo(1)
         coVerify(exactly = 1) { torChecker.check() }
     }
 }

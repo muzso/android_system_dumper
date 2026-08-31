@@ -451,15 +451,35 @@ class HttpDownloadServer @Inject constructor(
 
                     try {
                         val zipResult = when {
-                            isMisc -> archiveGenerator.generateMisc()
+                            isMisc -> {
+                                _progress.update { it?.copy(
+                                    currentFileName = filenameParam,
+                                    currentBytes = 0,
+                                    totalBytes = 0,
+                                    statusText = resourceProvider.getString(
+                                        R.string.preparing_file,
+                                        filenameParam
+                                    )
+                                ) }
+                                archiveGenerator.generateMisc()
+                            }
                             batchIndex != null -> {
-                                _progress.update { it?.copy(statusText = "Preparing $filenameParam...") }
+                                _progress.update { it?.copy(
+                                    currentFileName = filenameParam,
+                                    currentBytes = 0,
+                                    totalBytes = 0,
+                                    statusText = resourceProvider.getString(
+                                        R.string.preparing_file,
+                                        filenameParam
+                                    )
+                                ) }
                                 archiveGenerator.generateBatch(batchIndex)
                             }
                             else -> null // Should not happen due to check above
                         }
 
                         if (zipResult == null) {
+                            isDownloading.set(false)
                             call.respond(HttpStatusCode.NotFound)
                             return@get
                         }
@@ -479,7 +499,10 @@ class HttpDownloadServer @Inject constructor(
                                     currentFileName = responseFilename,
                                     totalBytes = totalBytes,
                                     currentBytes = 0,
-                                    statusText = "Downloading $responseFilename..."
+                                    statusText = resourceProvider.getString(
+                                        R.string.downloading_file,
+                                        responseFilename
+                                    )
                                 ) }
 
                                 var sentBytes = 0L
@@ -488,56 +511,75 @@ class HttpDownloadServer @Inject constructor(
                                     override val contentType = ContentType.Application.Zip
 
                                     override suspend fun writeTo(channel: ByteWriteChannel) {
-                                        file.inputStream().use { input ->
-                                            val buffer = ByteArray(64 * 1024)
-                                            var read = input.read(buffer)
-                                            while (read != -1) {
-                                                channel.writeFully(buffer, 0, read)
-                                                sentBytes += read
-                                                totalDownloadedBytes.addAndGet(read.toLong())
-                                                _progress.update { it?.copy(currentBytes = sentBytes) }
-                                                read = input.read(buffer)
+                                        try {
+                                            file.inputStream().use { input ->
+                                                val buffer = ByteArray(64 * 1024)
+                                                var read = input.read(buffer)
+                                                while (read != -1) {
+                                                    channel.writeFully(buffer, 0, read)
+                                                    sentBytes += read
+                                                    val nowTotal = totalDownloadedBytes.addAndGet(read.toLong())
+                                                    _progress.update { it?.copy(
+                                                        currentBytes = sentBytes,
+                                                        totalDownloadedBytes = nowTotal
+                                                    ) }
+                                                    read = input.read(buffer)
+                                                }
                                             }
+                                        } finally {
+                                            if (downloadedUniqueFiles.add(responseFilename)) {
+                                                successCount.incrementAndGet()
+                                            }
+                                            val currentSuccess = successCount.get()
+                                            val allFilesDownloaded = downloadedUniqueFiles.size >= totalUniqueFilesAvailable
+
+                                            val runtimeSeconds = (clock.monotonicTime() - startTime) / 1_000_000_000.0
+                                            val totalBytesNow = totalDownloadedBytes.get()
+                                            val totalFormatted = platformUtils.formatBytes(totalBytesNow)
+
+                                            val status = if (allFilesDownloaded) {
+                                                resourceProvider.getString(
+                                                    R.string.success_summary_all,
+                                                    resourceProvider.getString(R.string.action_downloaded_all),
+                                                    totalUniqueFilesAvailable.toLong(),
+                                                    totalFormatted,
+                                                    String.format(
+                                                        Locale.US,
+                                                        "%.2f",
+                                                        runtimeSeconds / 60.0
+                                                    )
+                                                )
+                                            } else {
+                                                resourceProvider.getString(
+                                                    R.string.successfully_downloaded_file,
+                                                    responseFilename
+                                                )
+                                            }
+
+                                            _progress.update { it?.copy(
+                                                successCount = currentSuccess,
+                                                statusText = status,
+                                                totalDownloadedBytes = totalBytesNow,
+                                                isFinished = allFilesDownloaded
+                                            ) }
+
+                                            archiveGenerator.cleanup(zipResult.data.path)
+                                            isDownloading.set(false)
                                         }
                                     }
                                 })
-                                
-                                if (downloadedUniqueFiles.add(responseFilename)) {
-                                    successCount.incrementAndGet()
-                                }
-                                val currentSuccess = successCount.get()
-                                val allFilesDownloaded = downloadedUniqueFiles.size >= totalUniqueFilesAvailable
-
-                                val runtimeSeconds = (clock.monotonicTime() - startTime) / 1_000_000_000.0
-                                val totalFormatted = platformUtils.formatBytes(totalDownloadedBytes.get())
-                                
-                                val status = if (allFilesDownloaded) {
-                                    "Success! Downloaded all $totalUniqueFilesAvailable files, $totalFormatted in ${String.format(
-                                        Locale.US, "%.2f", runtimeSeconds / 60.0)} minutes"
-                                } else {
-                                    "Successfully downloaded $responseFilename"
-                                }
-
-                                _progress.update { it?.copy(
-                                    successCount = currentSuccess,
-                                    statusText = status,
-                                    totalDownloadedBytes = totalDownloadedBytes.get(),
-                                    isFinished = allFilesDownloaded
-                                ) }
-
-                                archiveGenerator.cleanup(zipResult.data.path)
                             }
                             is DomainResult.Error -> {
                                 logger.e("HttpDownloadServer", "Error generating ZIP: ${zipResult.error}")
                                 call.respond(HttpStatusCode.InternalServerError, "Error generating ZIP")
+                                isDownloading.set(false)
                             }
                         }
                     } catch (e: Exception) {
                         logger.e("HttpDownloadServer", "Download failed", e)
+                        isDownloading.set(false)
                         // In Ktor, if we already started responding (WriteChannelContent), we can't respond again.
                         // But if it failed before respond call, we can.
-                    } finally {
-                        isDownloading.set(false)
                     }
                 }
             }

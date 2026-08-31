@@ -40,11 +40,7 @@ import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
  * @param filesCount The number of files found during the scan.
  * @param onSetCustomBatchSizeMb Callback to update the custom batch size.
  * @param onSetShouldUploadZips Callback to toggle ZIP upload.
- * @param onSetShouldUploadReadableList Callback to toggle readable list upload.
- * @param onSetShouldUploadUnreadableList Callback to toggle unreadable list upload.
- * @param onSetShouldUploadExcludedList Callback to toggle excluded list upload.
- * @param onSetShouldUploadMissingList Callback to toggle missing list upload.
- * @param onSetShouldUploadSymlinkList Callback to toggle symlink list upload.
+ * @param onSetShouldUploadFileLists Callback to toggle file list uploads.
  * @param onSetShouldUploadGetprop Callback to toggle getprop upload.
  * @param onSetShouldUploadAppLogs Callback to toggle app logs upload.
  * @param onSetZipEncryption Callback to update ZIP encryption.
@@ -59,11 +55,7 @@ fun PackagingPanel(
     filesCount: Int,
     onSetCustomBatchSizeMb: (String) -> Unit,
     onSetShouldUploadZips: (Boolean) -> Unit,
-    onSetShouldUploadReadableList: (Boolean) -> Unit,
-    onSetShouldUploadUnreadableList: (Boolean) -> Unit,
-    onSetShouldUploadExcludedList: (Boolean) -> Unit,
-    onSetShouldUploadMissingList: (Boolean) -> Unit,
-    onSetShouldUploadSymlinkList: (Boolean) -> Unit,
+    onSetShouldUploadFileLists: (Boolean) -> Unit,
     onSetShouldUploadGetprop: (Boolean) -> Unit,
     onSetShouldUploadAppLogs: (Boolean) -> Unit,
     onSetZipEncryption: (ZipEncryption) -> Unit,
@@ -125,34 +117,10 @@ fun PackagingPanel(
                 testTag = "switch_upload_zips"
             )
             SettingsSwitchRow(
-                label = stringResource(R.string.list_of_readable_files),
-                checked = settingsUiState.shouldUploadReadableList,
-                onCheckedChange = onSetShouldUploadReadableList,
-                testTag = "switch_upload_readable"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_unreadable_files),
-                checked = settingsUiState.shouldUploadUnreadableList,
-                onCheckedChange = onSetShouldUploadUnreadableList,
-                testTag = "switch_upload_unreadable"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_excluded_files),
-                checked = settingsUiState.shouldUploadExcludedList,
-                onCheckedChange = onSetShouldUploadExcludedList,
-                testTag = "switch_upload_excluded"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_missing_files),
-                checked = settingsUiState.shouldUploadMissingList,
-                onCheckedChange = onSetShouldUploadMissingList,
-                testTag = "switch_upload_missing"
-            )
-            SettingsSwitchRow(
-                label = stringResource(R.string.list_of_symlinks),
-                checked = settingsUiState.shouldUploadSymlinkList,
-                onCheckedChange = onSetShouldUploadSymlinkList,
-                testTag = "switch_upload_symlink"
+                label = stringResource(R.string.file_lists),
+                checked = settingsUiState.shouldUploadFileLists,
+                onCheckedChange = onSetShouldUploadFileLists,
+                testTag = "switch_upload_file_lists"
             )
             SettingsSwitchRow(
                 label = stringResource(R.string.output_of_getprop),
@@ -180,11 +148,7 @@ fun PackagingPanelPreview() {
             filesCount = 10,
             onSetCustomBatchSizeMb = {},
             onSetShouldUploadZips = {},
-            onSetShouldUploadReadableList = {},
-            onSetShouldUploadUnreadableList = {},
-            onSetShouldUploadExcludedList = {},
-            onSetShouldUploadMissingList = {},
-            onSetShouldUploadSymlinkList = {},
+            onSetShouldUploadFileLists = {},
             onSetShouldUploadGetprop = {},
             onSetShouldUploadAppLogs = {},
             onSetZipEncryption = {},

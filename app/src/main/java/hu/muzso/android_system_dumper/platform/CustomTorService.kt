@@ -33,6 +33,7 @@ class CustomTorService : TorService() {
 
         const val ACTION_NEWNYM = "hu.muzso.android_system_dumper.intent.action.NEWNYM"
         const val ACTION_CIRCUIT_ESTABLISHED = "hu.muzso.android_system_dumper.intent.action.CIRCUIT_ESTABLISHED"
+        const val ACTION_SERVICE_STOPPED = "hu.muzso.android_system_dumper.intent.action.SERVICE_STOPPED"
     }
 
     @Volatile
@@ -42,6 +43,14 @@ class CustomTorService : TorService() {
     override fun onCreate() {
         super.onCreate()
         startAsForeground()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        logger.i(TAG, "Tor service is stopping, sending broadcast")
+        sendBroadcast(Intent(ACTION_SERVICE_STOPPED).apply {
+            setPackage(packageName)
+        })
     }
 
     /**

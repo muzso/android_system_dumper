@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -132,11 +133,7 @@ class UploadViewModel @Inject constructor(
             proxySpecification = settings.proxySpecification,
             shouldUseTor = settings.shouldUseTor,
             shouldUploadZips = settings.shouldUploadZips,
-            shouldUploadReadableList = settings.shouldUploadReadableList,
-            shouldUploadUnreadableList = settings.shouldUploadUnreadableList,
-            shouldUploadExcludedList = settings.shouldUploadExcludedList,
-            shouldUploadMissingList = settings.shouldUploadMissingList,
-            shouldUploadSymlinkList = settings.shouldUploadSymlinkList,
+            shouldUploadFileLists = settings.shouldUploadFileLists,
             shouldUploadGetprop = settings.shouldUploadGetprop,
             shouldUploadAppLogs = settings.shouldUploadAppLogs,
             zipEncryption = settings.zipEncryption,
@@ -199,36 +196,60 @@ class UploadViewModel @Inject constructor(
                             R.string.partitioning_files_into_batches))) }
                     }
                     is UploadWorkflowStatus.ArchivingBatch -> {
-                        updateState { reduce(it, UploadResult.StatusTextChanged(resourceProvider.getString(
-                            R.string.archiving_batch_of, status.current, status.total))) }
+                        updateState { 
+                            val s1 = reduce(it, UploadResult.ResetProgress)
+                            reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
+                                R.string.archiving_batch_of, status.current, status.total)))
+                        }
                     }
                     is UploadWorkflowStatus.UploadingBatch -> {
-                        updateState { reduce(it, UploadResult.StatusTextChanged(resourceProvider.getString(
-                            R.string.uploading_attempt_of, status.label, status.attempt, status.totalRetries))) }
+                        updateState { 
+                            val s1 = reduce(it, UploadResult.ResetProgress)
+                            reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
+                                R.string.uploading_attempt_of, status.label, status.attempt, status.totalRetries)))
+                        }
                     }
                     UploadWorkflowStatus.CreatingReadableList -> {
-                        updateState { reduce(it, UploadResult.StatusTextChanged(resourceProvider.getString(
-                            R.string.creating_readable_file_list))) }
+                        updateState { 
+                            val s1 = reduce(it, UploadResult.ResetProgress)
+                            reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
+                                R.string.creating_list_template, resourceProvider.getString(R.string.list_type_readable))))
+                        }
                     }
                     UploadWorkflowStatus.CreatingUnreadableList -> {
-                        updateState { reduce(it, UploadResult.StatusTextChanged(resourceProvider.getString(
-                            R.string.creating_unreadable_file_list))) }
+                        updateState { 
+                            val s1 = reduce(it, UploadResult.ResetProgress)
+                            reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
+                                R.string.creating_list_template, resourceProvider.getString(R.string.list_type_unreadable))))
+                        }
                     }
                     UploadWorkflowStatus.CreatingExcludedList -> {
-                        updateState { reduce(it, UploadResult.StatusTextChanged(resourceProvider.getString(
-                            R.string.creating_excluded_file_list))) }
+                        updateState { 
+                            val s1 = reduce(it, UploadResult.ResetProgress)
+                            reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
+                                R.string.creating_list_template, resourceProvider.getString(R.string.list_type_excluded))))
+                        }
                     }
                     UploadWorkflowStatus.CreatingMissingList -> {
-                        updateState { reduce(it, UploadResult.StatusTextChanged(resourceProvider.getString(
-                            R.string.creating_missing_list))) }
+                        updateState { 
+                            val s1 = reduce(it, UploadResult.ResetProgress)
+                            reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
+                                R.string.creating_list_template, resourceProvider.getString(R.string.list_type_missing))))
+                        }
                     }
                     UploadWorkflowStatus.CreatingSymlinkList -> {
-                        updateState { reduce(it, UploadResult.StatusTextChanged(resourceProvider.getString(
-                            R.string.creating_symlink_list))) }
+                        updateState { 
+                            val s1 = reduce(it, UploadResult.ResetProgress)
+                            reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
+                                R.string.creating_list_template, resourceProvider.getString(R.string.list_type_symlink))))
+                        }
                     }
                     is UploadWorkflowStatus.ExecutingCommand -> {
-                        updateState { reduce(it, UploadResult.StatusTextChanged(resourceProvider.getString(
-                            R.string.executing_command, status.command))) }
+                        updateState { 
+                            val s1 = reduce(it, UploadResult.ResetProgress)
+                            reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
+                                R.string.executing_command, status.command)))
+                        }
                     }
                     is UploadWorkflowStatus.TotalPlannedUploads -> {
                         updateState { reduce(it, UploadResult.TotalPlannedUploads(status.count)) }
@@ -244,7 +265,7 @@ class UploadViewModel @Inject constructor(
                             downloadUrl = status.downloadUrl,
                             uploadedZips = status.uploadedZips,
                             passphrase = status.passphrase,
-                            statusText = resourceProvider.getString(R.string.upload_success, status.uploadedZips.toLong(), platformUtils.formatBytes(status.totalBytes), status.runtimeSeconds / 60.0)
+                            statusText = resourceProvider.getString(R.string.success_summary_all, resourceProvider.getString(R.string.action_uploaded), status.uploadedZips.toLong(), platformUtils.formatBytes(status.totalBytes), String.format(Locale.US, "%.2f", status.runtimeSeconds / 60.0))
                         )) }
                     }
                     is UploadWorkflowStatus.PartialSuccess -> {
@@ -320,11 +341,7 @@ class UploadViewModel @Inject constructor(
         val proxySpecification: String,
         val shouldUseTor: Boolean,
         val shouldUploadZips: Boolean,
-        val shouldUploadReadableList: Boolean,
-        val shouldUploadUnreadableList: Boolean,
-        val shouldUploadExcludedList: Boolean,
-        val shouldUploadMissingList: Boolean,
-        val shouldUploadSymlinkList: Boolean,
+        val shouldUploadFileLists: Boolean,
         val shouldUploadGetprop: Boolean,
         val shouldUploadAppLogs: Boolean,
         val zipEncryption: ZipEncryption,

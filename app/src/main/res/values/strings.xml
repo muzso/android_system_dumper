@@ -27,24 +27,24 @@
     <string name="zip_passphrase">ZIP passphrase</string>
     <string name="select_network_interface">Select network interface</string>
     <string name="progress_of_file_downloads">Progress of file downloads (success / total):</string>
-    <string name="percent_downloaded">%1$.1f%% downloaded</string>
+    <string name="percent_progress">%1$.1f%% %2$s</string>
     <string name="custom_batch_size_mb">Custom batch size (MB)</string>
     <string name="proxy">Proxy</string>
     <string name="use_tor_network">Use Tor network</string>
     <string name="select_what_to_package">Select what to put into ZIPs:</string>
     <string name="readable_files_filesystem">Readable files collected from the filesystem</string>
-    <string name="list_of_readable_files">List of readable files</string>
-    <string name="list_of_unreadable_files">List of unreadable files</string>
-    <string name="list_of_excluded_files">List of excluded files</string>
-    <string name="list_of_missing_files">List of missing files</string>
-    <string name="list_of_symlinks">List of symlinks</string>
+    <string name="file_lists">File lists</string>
     <string name="output_of_getprop">Output of getprop</string>
     <string name="upload_logs">Application logs</string>
+    <string name="status_uploaded">uploaded</string>
+    <string name="status_downloaded">downloaded</string>
+    <string name="action_uploaded">Uploaded</string>
+    <string name="action_downloaded_all">Downloaded all</string>
     <string name="progress_of_file_uploads">Progress of file uploads (success / total):</string>
-    <string name="percent_uploaded">%1$.1f%% uploaded</string>
     <string name="x_of_y">%1$s of %2$s</string>
     <string name="files_can_be_downloaded">Files can be downloaded using the following URL:</string>
-    <string name="copied_url">Copied URL</string>
+    <string name="url">URL</string>
+    <string name="passphrase">Passphrase</string>
     <string name="back">Back</string>
     <string name="help_instructions"><![CDATA[Help & Instructions]]></string>
     <string name="help_app_description_title">App description</string>
@@ -55,16 +55,12 @@
 • Custom batch size (MB): Specify the size limit for the set of files that go into a single ZIP archive (must be between %1$d and %2$d MB). The ZIP files themselves will be smaller since compression is applied. If available storage space in the cache directory is less than this limit, processing will be aborted (assuming the worst case scenario where 0%% compression is achieved). Increasing the batch size might result in failed uploads (some networks don\'t support file uploads of several hundred megabytes, e.g. in-vehicle mobile connections), the default usually works. If you use the HTTP Server method, larger batch sizes (e.g. 1024 MB) work as well.\n\n
 • Use double-zipping: For maximum privacy (if uploading to a file sharing service), apply double-zipping. Standard ZIP files don\'t allow the encryption of the central directory, thus the list of files in a ZIP file can always be read without knowing the passphrase. Putting a compressed plain ZIP inside a not compressed, but encrypted ZIP works around this problem. Of course this option doesn\'t make sense (and is disabled) if ZIP encryption is set to NONE.\n\n
 • Readable files collected from the filesystem: Control if the actual ZIP bundles containing the collected readable files should be uploaded. These ZIPs can take up several gigabytes and upload might take a long time depending on your internet connection\'s bandwidth. Disabling this option is good for a dry-run. You can just upload the list of files that were found to be readable, open/download it and see if you\'re OK with those files being uploaded to the file sharing service.\n\n
-• List of readable files (readable_list.txt): Control if the list of readable files (the ones that are bundled into ZIPs by the previous option) should be uploaded.\n\n
-• List of unreadable files (unreadable_list.txt): Control if the list of unreadable files (i.e. the ones that are on the device, but the app couldn\'t open them) should be uploaded.\n\n
-• List of excluded files (excluded_list.txt): Control if the list of excluded files (the ones that were skipped because they match the built-in exclusion list) should be uploaded.\n\n
-• List of missing files (missing_list.txt): Control if the list of missing files (the ones were the path was found somewhere, but no file exists at that location) should be uploaded.\n\n
-• List of symlinks (symlink_list.txt): Control if the list of found symbolic links should be uploaded.\n\n
+• File lists: Control if a number of file lists should be uploaded (readable_list.txt, unreadable_list.txt, excluded_list.txt, missing_list.txt, symlink_list.txt).\n\n
 • Output of getprop (getprop.txt): Control if the output of the \"getprop\" command (i.e. Android system properties) should be uploaded.\n\n
 • Application logs (logs.txt): Control if logs (of this application) should be uploaded.
 • File sharing service: Select the service to upload to.\n\n
 • Proxy: Specify a proxy for HTTP requests. Can be an HTTP proxy (start with \"http://\") or a SOCKS proxy (either start with \"socks://\" or with the IP address or hostname). If you only enter a (TCP) port number, a SOCKS proxy will be assumed to listen on localhost (127.0.0.1) and the entered port.\n\n
-• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections from Tor and/or the upload speed might be a lot slower. Toggling this off and on rebuilds the Tor circuits, thus you\'ll probably end up with a different exit node (i.e. public IP).\n\n
+• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections from Tor and/or the upload speed might be a lot slower. Toggling this off and on restarts the Tor service, thus you\'ll probably end up with a different exit node (i.e. public IP).\n\n
 </string>
     <string name="help_features_title">Features</string>
     <string name="help_features_description">• Cancellation scope: Hit \"Stop\" during the scan or upload phase to preserve and proceed with whatever has been already processed.\n\n
@@ -98,13 +94,14 @@ Accepted formats are:\n
     <string name="partitioning_files_into_batches">Partitioning files into batches ...</string>
     <string name="archiving_batch_of">Archiving batch %1$d of %2$d ...</string>
     <string name="uploading_attempt_of">Uploading %1$s ...\n(attempt %2$d of %3$d)</string>
-    <string name="creating_readable_file_list">Creating readable file list ...</string>
-    <string name="creating_unreadable_file_list">Creating unreadable file list ...</string>
-    <string name="creating_excluded_file_list">Creating excluded file list ...</string>
-    <string name="creating_missing_list">Creating missing list ...</string>
-    <string name="creating_symlink_list">Creating symlink list ...</string>
+    <string name="creating_list_template">Creating %1$s list ...</string>
+    <string name="list_type_readable">readable file</string>
+    <string name="list_type_unreadable">unreadable file</string>
+    <string name="list_type_excluded">excluded file</string>
+    <string name="list_type_missing">missing files</string>
+    <string name="list_type_symlink">symlinks</string>
     <string name="executing_command">Executing %1$s command ...</string>
-    <string name="upload_success">Success! Uploaded %1$d files, %2$s in %3$.2f minutes.</string>
+    <string name="success_summary_all">Success! %1$s %2$d files, %3$s in %4$s minutes</string>
     <string name="upload_partial_success">Partial upload! Successfully uploaded %1$d files out of %2$d (%3$s in %4$.2f minutes), %5$d upload(s) failed.</string>
     <string name="upload_zero_success">All uploads seem to have failed (in %1$.2f minutes), but a download URL is still available.</string>
     <string name="upload_error_empty_url">Uploaded %1$s in %2$.2f minutes, but no download URL is available.</string>
@@ -116,6 +113,17 @@ Accepted formats are:\n
     <string name="tor_service_name">Tor Service (Android System Dumper)</string>
     <string name="tor_is_running">Tor is running</string>
     <string name="tor_notification_channel_name">Tor Network</string>
-    <string name="copy_passphrase_to_clipboard">Copy passphrase to clipboard</string>
-    <string name="tor_checker_screen">Tor Checker</string>
+    <string name="ip_information_screen_title">IP Information</string>
+    <string name="ip_information_screen_icon">IP</string>
+    <string name="preparing_file">Preparing %1$s...</string>
+    <string name="downloading_file">Downloading %1$s...</string>
+    <string name="successfully_downloaded_file">Successfully downloaded %1$s</string>
+    <string name="no_upload_service_selected">No upload service selected</string>
+    <string name="help">Help</string>
+    <string name="copied_to_clipboard">%1$s copied to clipboard</string>
+    <string name="failed_to_copy">Failed to copy %1$s</string>
+    <string name="qr_code">QR Code</string>
+    <string name="failed_to_generate_qr_code">Failed to generate QR Code</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="view_as_qr_code">View as QR code</string>
 </resources>

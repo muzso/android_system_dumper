@@ -74,7 +74,7 @@ fun IpInfoContent(
     onSourceSelected: (String) -> Unit,
     onBack: () -> Unit
 ) {
-    val torCheckerScreenTitle = stringResource(R.string.tor_checker_screen)
+    val torCheckerScreenTitle = stringResource(R.string.ip_information_screen_title)
     Scaffold(
         topBar = {
             TopAppBar(

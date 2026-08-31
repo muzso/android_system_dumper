@@ -79,11 +79,7 @@ fun DownloadScreen(
             proxySpecification = settingsUiState.proxySpecification,
             shouldUseTor = false,
             shouldUploadZips = settingsUiState.shouldUploadZips,
-            shouldUploadReadableList = settingsUiState.shouldUploadReadableList,
-            shouldUploadUnreadableList = settingsUiState.shouldUploadUnreadableList,
-            shouldUploadExcludedList = settingsUiState.shouldUploadExcludedList,
-            shouldUploadMissingList = settingsUiState.shouldUploadMissingList,
-            shouldUploadSymlinkList = settingsUiState.shouldUploadSymlinkList,
+            shouldUploadFileLists = settingsUiState.shouldUploadFileLists,
             shouldUploadGetprop = settingsUiState.shouldUploadGetprop,
             shouldUploadAppLogs = settingsUiState.shouldUploadAppLogs,
             zipEncryption = settingsUiState.zipEncryption,
@@ -191,14 +187,13 @@ fun DownloadContent(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.weight(1f)
                             )
-                            val zipPassphraseLabel = stringResource(R.string.zip_passphrase)
-                            val copyPassphraseLabel = stringResource(R.string.copy_passphrase_to_clipboard)
+                            val zipPassphraseLabel = stringResource(R.string.passphrase)
                             IconButton(
                                 onClick = { onCopyText(zipPassphraseLabel, passphrase) }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = copyPassphraseLabel,
+                                    contentDescription = stringResource(R.string.copy_to_clipboard),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -272,31 +267,34 @@ fun DownloadContent(
                             )
                         }
 
-                        if (uiState.totalBytes > 0) {
-                            val percentage = (uiState.currentBytes.toDouble() / uiState.totalBytes * 100).coerceIn(0.0, 100.0)
-                            val progressFraction = (uiState.currentBytes.toFloat() / uiState.totalBytes).coerceIn(0f, 1f)
-                            
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                LinearProgressIndicator(
-                                    drawStopIndicator = {},
-                                    progress = { progressFraction },
-                                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp))
+                        val percentage = if (uiState.totalBytes > 0) {
+                            (uiState.currentBytes.toDouble() / uiState.totalBytes * 100).coerceIn(0.0, 100.0)
+                        } else 0.0
+
+                        val progressFraction = if (uiState.totalBytes > 0) {
+                            (uiState.currentBytes.toFloat() / uiState.totalBytes).coerceIn(0f, 1f)
+                        } else 0f
+
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            LinearProgressIndicator(
+                                drawStopIndicator = {},
+                                progress = { progressFraction },
+                                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp))
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = String.format(java.util.Locale.US, stringResource(R.string.percent_progress), percentage, stringResource(R.string.status_downloaded)),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold
                                 )
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = String.format(java.util.Locale.US, stringResource(R.string.percent_downloaded), percentage),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.x_of_y, formatBytes(uiState.currentBytes), formatBytes(uiState.totalBytes)),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+                                Text(
+                                    text = stringResource(R.string.x_of_y, formatBytes(uiState.currentBytes), formatBytes(uiState.totalBytes)),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
 

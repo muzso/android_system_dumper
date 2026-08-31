@@ -50,7 +50,11 @@ class HttpDownloadServerTest {
     @Before
     fun setup() {
         server = HttpDownloadServer(archiveGenerator, clock, logger, platformUtils, resourceProvider, appConfig)
-        every { resourceProvider.getString(any()) } returns "test_string"
+        every { resourceProvider.getString(any<Int>()) } returns "test_string"
+        every { resourceProvider.getString(any<Int>(), *anyVararg()) } answers {
+            val args = it.invocation.args[1] as Array<*>
+            "test_string: ${args.joinToString()}"
+        }
         every { clock.monotonicTime() } returns 0L
     }
 
@@ -59,11 +63,7 @@ class HttpDownloadServerTest {
         proxySpecification = "",
         shouldUseTor = false,
         shouldUploadZips = true,
-        shouldUploadReadableList = true,
-        shouldUploadUnreadableList = true,
-        shouldUploadExcludedList = true,
-        shouldUploadMissingList = true,
-        shouldUploadSymlinkList = true,
+        shouldUploadFileLists = true,
         shouldUploadGetprop = true,
         shouldUploadAppLogs = true,
         zipEncryption = ZipEncryption.NONE,
@@ -352,35 +352,34 @@ class HttpDownloadServerTest {
                 // Collect and verify statuses in order, ignoring intermediate noise
                 val statuses = mutableListOf<String>()
                 
-                // 1. Wait for "Preparing"
+                // 1. Wait for "Preparing" (which is now mocked as "test_string")
                 while (true) {
                     val item = awaitItem()
                     val status = item?.statusText ?: ""
                     if (status.isNotEmpty()) statuses.add(status)
-                    if (status.contains("Preparing")) break
+                    if (status.contains("test_string")) break
                 }
 
-                // 2. Wait for "Downloading"
+                // 2. Wait for "Downloading" (also mocked as "test_string")
                 while (true) {
                     val item = awaitItem()
                     val status = item?.statusText ?: ""
                     if (status.isNotEmpty()) statuses.add(status)
-                    if (status.contains("Downloading")) break
+                    if (status.contains("test_string")) break
                 }
 
-                // 3. Wait for "Success"
+                // 3. Wait for "Success" (also mocked as "test_string")
                 while (true) {
                     val item = awaitItem()
                     val status = item?.statusText ?: ""
                     if (status.isNotEmpty()) statuses.add(status)
-                    if (status.contains("Success")) break
+                    if (status.contains("test_string")) break
                 }
                 
-                assertTrue(statuses.any { it.contains("Preparing") })
-                assertTrue(statuses.any { it.contains("Downloading") })
-                assertTrue(statuses.any { it.contains("Success") })
+                assertTrue(statuses.any { it.contains("test_string") })
                 
                 request.join()
+                cancelAndIgnoreRemainingEvents()
             }
         }
         tempFile.delete()

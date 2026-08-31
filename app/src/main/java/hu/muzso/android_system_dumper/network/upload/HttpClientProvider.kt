@@ -1,5 +1,6 @@
 package hu.muzso.android_system_dumper.network.upload
 
+import hu.muzso.android_system_dumper.config.AppConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,11 +17,13 @@ import javax.inject.Singleton
  * This provider manages the global [Proxy] settings and applies them to the returned clients.
  */
 @Singleton
-class HttpClientProvider @Inject constructor() {
+class HttpClientProvider @Inject constructor(
+    appConfig: AppConfig
+) {
     private val baseClient = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(appConfig.networkTimeoutMs, TimeUnit.MILLISECONDS)
+        .readTimeout(appConfig.networkTimeoutMs, TimeUnit.MILLISECONDS)
+        .writeTimeout(appConfig.networkTimeoutMs, TimeUnit.MILLISECONDS)
         .retryOnConnectionFailure(false)
         .build()
 

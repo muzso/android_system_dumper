@@ -69,9 +69,7 @@ class DefaultArchiveGenerator @Inject constructor(
 
     override fun shouldGenerateMisc(): Boolean {
         val p = parameters ?: return false
-        return p.shouldUploadReadableList || p.shouldUploadUnreadableList ||
-                p.shouldUploadExcludedList || p.shouldUploadMissingList ||
-                p.shouldUploadSymlinkList || p.shouldUploadGetprop ||
+        return p.shouldUploadFileLists || p.shouldUploadGetprop ||
                 p.shouldUploadAppLogs
     }
 
@@ -112,31 +110,31 @@ class DefaultArchiveGenerator @Inject constructor(
         val filesToCleanUp = mutableListOf<String>()
 
         try {
-            if (p.shouldUploadReadableList && sr.readableFiles.isNotEmpty()) {
+            if (p.shouldUploadFileLists && sr.readableFiles.isNotEmpty()) {
                 val path = fileSystem.join(cacheDir, "readable_list.txt")
                 fileSystem.writeText(path, sr.readableFiles.joinToString("\n") { "${it.path}, ${it.size}, ${it.source}" })
                 miscFiles.add(fileSystem.getCanonicalPath(path))
                 filesToCleanUp.add(path)
             }
-            if (p.shouldUploadUnreadableList && sr.unreadableFiles.isNotEmpty()) {
+            if (p.shouldUploadFileLists && sr.unreadableFiles.isNotEmpty()) {
                 val path = fileSystem.join(cacheDir, "unreadable_list.txt")
                 fileSystem.writeText(path, sr.unreadableFiles.joinToString("\n"))
                 miscFiles.add(fileSystem.getCanonicalPath(path))
                 filesToCleanUp.add(path)
             }
-            if (p.shouldUploadExcludedList && sr.excludedFiles.isNotEmpty()) {
+            if (p.shouldUploadFileLists && sr.excludedFiles.isNotEmpty()) {
                 val path = fileSystem.join(cacheDir, "excluded_list.txt")
                 fileSystem.writeText(path, sr.excludedFiles.joinToString("\n"))
                 miscFiles.add(fileSystem.getCanonicalPath(path))
                 filesToCleanUp.add(path)
             }
-            if (p.shouldUploadMissingList && sr.missingFiles.isNotEmpty()) {
+            if (p.shouldUploadFileLists && sr.missingFiles.isNotEmpty()) {
                 val path = fileSystem.join(cacheDir, "missing_list.txt")
                 fileSystem.writeText(path, sr.missingFiles.joinToString("\n"))
                 miscFiles.add(fileSystem.getCanonicalPath(path))
                 filesToCleanUp.add(path)
             }
-            if (p.shouldUploadSymlinkList && sr.symlinks.isNotEmpty()) {
+            if (p.shouldUploadFileLists && sr.symlinks.isNotEmpty()) {
                 val path = fileSystem.join(cacheDir, "symlink_list.txt")
                 fileSystem.writeText(path, sr.symlinks.map { "${it.key} -> ${it.value}" }.sorted().joinToString("\n"))
                 miscFiles.add(fileSystem.getCanonicalPath(path))

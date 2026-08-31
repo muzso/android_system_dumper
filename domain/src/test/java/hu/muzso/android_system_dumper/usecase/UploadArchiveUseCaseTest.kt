@@ -270,11 +270,7 @@ class UploadArchiveUseCaseTest {
     @Test
     fun `execute emits status for all misc files`() = runTest(testDispatcher) {
         val parameters = createParameters().copy(
-            shouldUploadReadableList = true,
-            shouldUploadUnreadableList = true,
-            shouldUploadExcludedList = true,
-            shouldUploadMissingList = true,
-            shouldUploadSymlinkList = true,
+            shouldUploadFileLists = true,
             shouldUploadGetprop = true,
             shouldUploadAppLogs = true
         )
@@ -392,11 +388,7 @@ class UploadArchiveUseCaseTest {
         proxySpecification = "",
         shouldUseTor = false,
         shouldUploadZips = false,
-        shouldUploadReadableList = false,
-        shouldUploadUnreadableList = false,
-        shouldUploadExcludedList = false,
-        shouldUploadMissingList = false,
-        shouldUploadSymlinkList = false,
+        shouldUploadFileLists = false,
         shouldUploadGetprop = false,
         shouldUploadAppLogs = false,
         zipEncryption = ZipEncryption.NONE,

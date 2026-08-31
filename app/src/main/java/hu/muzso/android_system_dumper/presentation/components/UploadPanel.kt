@@ -129,17 +129,20 @@ fun UploadPanel(
                 }
             }
 
-            if (uploadUiState.isUploading && uploadUiState.currentZipTotalBytes > 0) {
-                val percentage =
+            if (uploadUiState.isUploading && uploadUiState.totalZips > 0) {
+                val percentage = if (uploadUiState.currentZipTotalBytes > 0) {
                     (uploadUiState.currentZipUploadBytes.toDouble() / uploadUiState.currentZipTotalBytes * 100).coerceIn(
                         0.0,
                         100.0
                     )
-                val progressFraction =
+                } else 0.0
+
+                val progressFraction = if (uploadUiState.currentZipTotalBytes > 0) {
                     (uploadUiState.currentZipUploadBytes.toFloat() / uploadUiState.currentZipTotalBytes).coerceIn(
                         0f,
                         1f
                     )
+                } else 0f
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     LinearProgressIndicator(
                         drawStopIndicator = {},
@@ -156,8 +159,9 @@ fun UploadPanel(
                         Text(
                             text = String.format(
                                 java.util.Locale.US,
-                                stringResource(R.string.percent_uploaded),
-                                percentage
+                                stringResource(R.string.percent_progress),
+                                percentage,
+                                stringResource(R.string.status_uploaded)
                             ),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold

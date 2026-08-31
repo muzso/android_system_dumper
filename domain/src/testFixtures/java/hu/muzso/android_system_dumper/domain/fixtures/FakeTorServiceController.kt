@@ -7,11 +7,18 @@ class FakeTorServiceController(
     private var circuitReady: Boolean = true
 ) : TorServiceController {
     val rebuildCircuitCalls = AtomicInteger(0)
+    val restartTorServiceCalls = AtomicInteger(0)
     var lastTimeoutMs: Long? = null
         private set
 
     override suspend fun rebuildCircuit() {
         rebuildCircuitCalls.incrementAndGet()
+    }
+
+    override suspend fun restartTorService(timeoutMs: Long): Boolean {
+        restartTorServiceCalls.incrementAndGet()
+        lastTimeoutMs = timeoutMs
+        return circuitReady
     }
 
     override suspend fun waitForCircuit(timeoutMs: Long): Boolean {

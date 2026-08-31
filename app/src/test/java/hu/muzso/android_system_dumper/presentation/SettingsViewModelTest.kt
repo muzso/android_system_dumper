@@ -3,6 +3,7 @@ package hu.muzso.android_system_dumper.presentation
 import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import hu.muzso.android_system_dumper.common.NetworkUtils
+import hu.muzso.android_system_dumper.config.AppConfig
 import hu.muzso.android_system_dumper.domain.fixtures.FakeClock
 import hu.muzso.android_system_dumper.domain.fixtures.FakeFileLogger
 import hu.muzso.android_system_dumper.model.ZipEncryption
@@ -35,8 +36,9 @@ class SettingsViewModelTest {
 
     private val clock = FakeClock()
     private val logger = FakeFileLogger()
+    private val appConfig = mockk<AppConfig>()
     private val networkUtils = mockk<NetworkUtils>(relaxed = true)
-    private val httpClientProvider = HttpClientProvider()
+    private lateinit var httpClientProvider: HttpClientProvider
     private val uploadRepositoryManager = mockk<UploadRepositoryManager>(relaxed = true)
     private val startTorUseCase = mockk<StartTorUseCase>(relaxed = true)
     private val stopTorUseCase = mockk<StopTorUseCase>(relaxed = true)
@@ -50,6 +52,9 @@ class SettingsViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        
+        every { appConfig.networkTimeoutMs } returns 30000L
+        httpClientProvider = HttpClientProvider(appConfig)
         
         every { loadExcludeListUseCase.execute() } returns listOf("/excluded")
         every { getSeedPathsUseCase.execute() } returns listOf("/seed")

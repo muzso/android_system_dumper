@@ -24,11 +24,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.presentation.UploadViewModel
 import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
 
@@ -61,7 +63,7 @@ fun QrCodeContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("QR Code") },
+                title = { Text(stringResource(R.string.qr_code)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -81,7 +83,7 @@ fun QrCodeContent(
             if (qrBitmap != null) {
                 Image(
                     bitmap = qrBitmap.asImageBitmap(),
-                    contentDescription = "QR Code",
+                    contentDescription = stringResource(R.string.qr_code),
                     modifier = Modifier
                         .fillMaxSize(0.8f)
                         .aspectRatio(1f)
@@ -95,7 +97,7 @@ fun QrCodeContent(
                 )
             } else {
                 Text(
-                    text = "Failed to generate QR Code",
+                    text = stringResource(R.string.failed_to_generate_qr_code),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold

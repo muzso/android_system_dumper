@@ -70,7 +70,7 @@ fun ResultsCard(
     onOpenUri: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val copiedUrlMsg = stringResource(R.string.copied_url)
+    val urlLabel = stringResource(R.string.url)
 
     AnimatedVisibility(
         visible = uploadUiState.downloadUrl != null,
@@ -135,11 +135,11 @@ fun ResultsCard(
                                 }
                         )
                         IconButton(
-                            onClick = { onCopyText(copiedUrlMsg, uri) }
+                            onClick = { onCopyText(urlLabel, uri) }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ContentCopy,
-                                contentDescription = "Copy to clipboard",
+                                contentDescription = stringResource(R.string.copy_to_clipboard),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
@@ -149,7 +149,7 @@ fun ResultsCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.QrCode,
-                                contentDescription = "View as QR code",
+                                contentDescription = stringResource(R.string.view_as_qr_code),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
@@ -180,14 +180,13 @@ fun ResultsCard(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.weight(1f)
                             )
-                            val zipPasspraseLabel = stringResource(R.string.zip_passphrase)
-                            val copyButtonText = stringResource(R.string.copy_passphrase_to_clipboard)
+                            val zipPassphraseLabel = stringResource(R.string.passphrase)
                             IconButton(
-                                onClick = { onCopyText(zipPasspraseLabel, passphrase) }
+                                onClick = { onCopyText(zipPassphraseLabel, passphrase) }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = copyButtonText,
+                                    contentDescription = stringResource(R.string.copy_to_clipboard),
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }

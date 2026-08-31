@@ -62,10 +62,9 @@ class UploadBatchUseCase(
                 onStatusUpdate = onStatusUpdate,
                 onFailure = { attempt, _ ->
                     if (shouldUseTor && currentCoroutineContext().isActive && attempt < retries) {
-                        logger.i(tag, "Upload attempt $attempt failed with Tor. Rebuilding circuit...")
-                        torServiceController.rebuildCircuit()
-                        if (torServiceController.waitForCircuit(30000L)) {
-                            logger.i(tag, "New Tor circuit established for next attempt. Verifying Tor connection...")
+                        logger.i(tag, "Upload attempt $attempt failed with Tor. Restarting Tor service...")
+                        if (torServiceController.restartTorService(60000L)) {
+                            logger.i(tag, "Tor service restarted successfully. Verifying Tor connection...")
                             try {
                                 if (torChecker.check()) {
                                     logger.i(tag, "Tor verification successful")

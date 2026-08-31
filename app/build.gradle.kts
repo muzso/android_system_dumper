@@ -33,6 +33,8 @@ android {
 
     testInstrumentationRunner = "hu.muzso.android_system_dumper.HiltTestRunner"
 
+    // Various network timeouts (connect, read, write, etc.).
+    buildConfigField("long", "NETWORK_TIMEOUT_MS", getConfig("NETWORK_TIMEOUT_MS", "30000"))
     // For demonstration purposes you can hardwire the IP address (that is shown on screen) here:
     buildConfigField("String", "HTTP_SERVER_IP_ADDRESS", "\"${getConfig("HTTP_SERVER_IP_ADDRESS", "")}\"")
     // And the TCP port that the HTTP server listens on:
@@ -108,6 +110,7 @@ ksp {
 secrets {
   propertiesFileName = ".env"
   defaultPropertiesFileName = ".env.example"
+  ignoreList.add("NETWORK_TIMEOUT_MS")
   ignoreList.add("HTTP_SERVER_IP_ADDRESS")
   ignoreList.add("HTTP_SERVER_TCP_PORT")
   ignoreList.add("BATCH_LIMIT")

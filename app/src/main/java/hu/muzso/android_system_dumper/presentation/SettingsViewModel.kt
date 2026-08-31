@@ -58,11 +58,7 @@ class SettingsViewModel @Inject constructor(
         data class SetProxySpecification(val spec: String) : Intent()
         data class SetShouldUseTor(val value: Boolean) : Intent()
         data class SetShouldUploadZips(val value: Boolean) : Intent()
-        data class SetShouldUploadReadableList(val value: Boolean) : Intent()
-        data class SetShouldUploadUnreadableList(val value: Boolean) : Intent()
-        data class SetShouldUploadExcludedList(val value: Boolean) : Intent()
-        data class SetShouldUploadMissingList(val value: Boolean) : Intent()
-        data class SetShouldUploadSymlinkList(val value: Boolean) : Intent()
+        data class SetShouldUploadFileLists(val value: Boolean) : Intent()
         data class SetShouldUploadGetprop(val value: Boolean) : Intent()
         data class SetShouldUploadAppLogs(val value: Boolean) : Intent()
         data class SetZipEncryption(val value: ZipEncryption) : Intent()
@@ -81,15 +77,11 @@ class SettingsViewModel @Inject constructor(
     private val _proxySpecification = savedStateHandle.getStateFlow("proxySpecification", "")
     private val _shouldUseTor = savedStateHandle.getStateFlow("shouldUseTor", true)
     private val _shouldUploadZips = savedStateHandle.getStateFlow("shouldUploadZips", true)
-    private val _shouldUploadReadableList = savedStateHandle.getStateFlow("shouldUploadReadableList", true)
-    private val _shouldUploadUnreadableList = savedStateHandle.getStateFlow("shouldUploadUnreadableList", true)
-    private val _shouldUploadExcludedList = savedStateHandle.getStateFlow("shouldUploadExcludedList", true)
-    private val _shouldUploadMissingList = savedStateHandle.getStateFlow("shouldUploadMissingList", true)
-    private val _shouldUploadSymlinkList = savedStateHandle.getStateFlow("shouldUploadSymlinkList", true)
+    private val _shouldUploadFileLists = savedStateHandle.getStateFlow("shouldUploadFileLists", true)
     private val _shouldUploadGetprop = savedStateHandle.getStateFlow("shouldUploadGetprop", false)
     private val _shouldUploadAppLogs = savedStateHandle.getStateFlow("shouldUploadAppLogs", true)
     private val _zipEncryption = savedStateHandle.getStateFlow("zipEncryption", ZipEncryption.STANDARD)
-    private val _useDoubleZipping = savedStateHandle.getStateFlow("useDoubleZipping", false)
+    private val _useDoubleZipping = savedStateHandle.getStateFlow("useDoubleZipping", true)
     private val _selectedIpSource = savedStateHandle.getStateFlow("selectedIpSource", ipInfoRepository.getAvailableSources().first())
     private val _fatalError = MutableStateFlow<String?>(null)
 
@@ -99,8 +91,7 @@ class SettingsViewModel @Inject constructor(
 
     val uiState: StateFlow<SettingsUiState> = combine(
         _customBatchSizeMb, _proxySpecification, _shouldUseTor, _shouldUploadZips,
-        _shouldUploadReadableList, _shouldUploadUnreadableList, _shouldUploadExcludedList,
-        _shouldUploadMissingList, _shouldUploadSymlinkList, _shouldUploadGetprop,
+        _shouldUploadFileLists, _shouldUploadGetprop,
         _shouldUploadAppLogs, _zipEncryption, _useDoubleZipping, _ignoreExcludeList, _selectedService,
         _selectedIpSource, _fatalError
     ) { args ->
@@ -110,21 +101,17 @@ class SettingsViewModel @Inject constructor(
             proxySpecification = args[1] as String,
             shouldUseTor = args[2] as Boolean,
             shouldUploadZips = args[3] as Boolean,
-            shouldUploadReadableList = args[4] as Boolean,
-            shouldUploadUnreadableList = args[5] as Boolean,
-            shouldUploadExcludedList = args[6] as Boolean,
-            shouldUploadMissingList = args[7] as Boolean,
-            shouldUploadSymlinkList = args[8] as Boolean,
-            shouldUploadGetprop = args[9] as Boolean,
-            shouldUploadAppLogs = args[10] as Boolean,
-            zipEncryption = args[11] as ZipEncryption,
-            useDoubleZipping = args[12] as Boolean,
-            ignoreExcludeList = args[13] as Boolean,
-            selectedService = args[14] as UploadRepository,
+            shouldUploadFileLists = args[4] as Boolean,
+            shouldUploadGetprop = args[5] as Boolean,
+            shouldUploadAppLogs = args[6] as Boolean,
+            zipEncryption = args[7] as ZipEncryption,
+            useDoubleZipping = args[8] as Boolean,
+            ignoreExcludeList = args[9] as Boolean,
+            selectedService = args[10] as UploadRepository,
             services = services,
-            selectedIpSource = args[15] as String,
+            selectedIpSource = args[11] as String,
             availableIpSources = ipInfoRepository.getAvailableSources(),
-            fatalError = args[16] as String?,
+            fatalError = args[12] as String?,
             exclusionList = loadExcludeListUseCase.execute(),
             discoveryRoots = getSeedPathsUseCase.execute()
         )
@@ -164,11 +151,7 @@ class SettingsViewModel @Inject constructor(
             is Intent.SetProxySpecification -> setProxySpecification(intent.spec)
             is Intent.SetShouldUseTor -> setShouldUseTor(intent.value)
             is Intent.SetShouldUploadZips -> savedStateHandle["shouldUploadZips"] = intent.value
-            is Intent.SetShouldUploadReadableList -> savedStateHandle["shouldUploadReadableList"] = intent.value
-            is Intent.SetShouldUploadUnreadableList -> savedStateHandle["shouldUploadUnreadableList"] = intent.value
-            is Intent.SetShouldUploadExcludedList -> savedStateHandle["shouldUploadExcludedList"] = intent.value
-            is Intent.SetShouldUploadMissingList -> savedStateHandle["shouldUploadMissingList"] = intent.value
-            is Intent.SetShouldUploadSymlinkList -> savedStateHandle["shouldUploadSymlinkList"] = intent.value
+            is Intent.SetShouldUploadFileLists -> savedStateHandle["shouldUploadFileLists"] = intent.value
             is Intent.SetShouldUploadGetprop -> savedStateHandle["shouldUploadGetprop"] = intent.value
             is Intent.SetShouldUploadAppLogs -> savedStateHandle["shouldUploadAppLogs"] = intent.value
             is Intent.SetZipEncryption -> {

@@ -10,11 +10,7 @@ data class SettingsUiState(
     val proxySpecification: String = "",
     val shouldUseTor: Boolean = true,
     val shouldUploadZips: Boolean = true,
-    val shouldUploadReadableList: Boolean = true,
-    val shouldUploadUnreadableList: Boolean = true,
-    val shouldUploadExcludedList: Boolean = true,
-    val shouldUploadMissingList: Boolean = true,
-    val shouldUploadSymlinkList: Boolean = true,
+    val shouldUploadFileLists: Boolean = true,
     val shouldUploadGetprop: Boolean = false,
     val shouldUploadAppLogs: Boolean = false,
     val zipEncryption: ZipEncryption = ZipEncryption.STANDARD,
@@ -119,6 +115,7 @@ sealed interface UploadResult {
     object UploadError : UploadResult
     object UploadAborted : UploadResult
     data class QrGenerated(val bitmap: Bitmap?) : UploadResult
+    object ResetProgress : UploadResult
     object Reset : UploadResult
 }
 
@@ -153,6 +150,10 @@ fun reduce(state: UploadUiState, result: UploadResult): UploadUiState {
             uploadStatusText = result.toString() // Or a specific string, but keeping it simple for now
         )
         is UploadResult.QrGenerated -> state.copy(qrBitmap = result.bitmap)
+        UploadResult.ResetProgress -> state.copy(
+            currentZipUploadBytes = 0L,
+            currentZipTotalBytes = 0L
+        )
         UploadResult.Reset -> UploadUiState()
     }
 }
