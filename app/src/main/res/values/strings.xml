@@ -28,6 +28,7 @@
     <string name="select_network_interface">Select network interface</string>
     <string name="progress_of_file_downloads">Progress of file downloads (success / total):</string>
     <string name="percent_progress">%1$.1f%% %2$s</string>
+    <string name="max_retries">Retry limit</string>
     <string name="custom_batch_size_mb">Custom batch size (MB)</string>
     <string name="proxy">Proxy</string>
     <string name="use_tor_network">Use Tor network</string>
@@ -59,6 +60,7 @@
 • Output of getprop (getprop.txt): Control if the output of the \"getprop\" command (i.e. Android system properties) should be uploaded.\n\n
 • Application logs (logs.txt): Control if logs (of this application) should be uploaded.
 • File sharing service: Select the service to upload to.\n\n
+• Retry limit: Maximum number of retry attempts for a file upload. Also, the maximum number of retry attempts for a Tor check.\n\n
 • Proxy: Specify a proxy for HTTP requests. Can be an HTTP proxy (start with \"http://\") or a SOCKS proxy (either start with \"socks://\" or with the IP address or hostname). If you only enter a (TCP) port number, a SOCKS proxy will be assumed to listen on localhost (127.0.0.1) and the entered port.\n\n
 • Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections from Tor and/or the upload speed might be a lot slower. Toggling this off and on restarts the Tor service, thus you\'ll probably end up with a different exit node (i.e. public IP).\n\n
 </string>
@@ -92,8 +94,8 @@ Accepted formats are:\n
     <string name="pre_flight_check_failed">Pre-Flight check failed: at least one upload option must be enabled.</string>
     <string name="traffic_doesnt_go_through_tor_error">You\'ve selected to use Tor, but for some reason requests don\'t go through the Tor network.</string>
     <string name="partitioning_files_into_batches">Partitioning files into batches ...</string>
-    <string name="archiving_batch_of">Archiving batch %1$d of %2$d ...</string>
-    <string name="uploading_attempt_of">Uploading %1$s ...\n(attempt %2$d of %3$d)</string>
+    <string name="archiving_batch">Archiving batch %1$d of %2$d ...</string>
+    <string name="uploading_attempt">Uploading %1$s ...\n(attempt #%2$d)</string>
     <string name="creating_list_template">Creating %1$s list ...</string>
     <string name="list_type_readable">readable file</string>
     <string name="list_type_unreadable">unreadable file</string>

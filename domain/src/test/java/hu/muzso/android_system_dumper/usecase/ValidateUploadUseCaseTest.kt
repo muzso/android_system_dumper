@@ -40,24 +40,20 @@ class ValidateUploadUseCaseTest {
 
     @Test
     fun `execute returns Success for boundary batch sizes`() {
-        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = "1")))
+        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = 1)))
             .isEqualTo(ValidateUploadUseCase.ValidationResult.Success)
-        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = "100")))
+        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = 100)))
             .isEqualTo(ValidateUploadUseCase.ValidationResult.Success)
     }
 
     @Test
     fun `execute returns InvalidBatchSize when batch size is too small or too large`() {
         // Too small
-        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = "0")))
+        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = 0)))
             .isInstanceOf(ValidateUploadUseCase.ValidationResult.Error.InvalidBatchSize::class.java)
         
         // Too large
-        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = "101")))
-            .isInstanceOf(ValidateUploadUseCase.ValidationResult.Error.InvalidBatchSize::class.java)
-            
-        // Not a number
-        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = "abc")))
+        assertThat(useCase.execute(createValidParameters().copy(customBatchSizeMb = 101)))
             .isInstanceOf(ValidateUploadUseCase.ValidationResult.Error.InvalidBatchSize::class.java)
     }
 
@@ -85,13 +81,14 @@ class ValidateUploadUseCaseTest {
     }
 
     private fun createValidParameters() = UploadParameters(
-        customBatchSizeMb = "10",
+        customBatchSizeMb = 10,
         proxySpecification = "localhost:8080",
         shouldUseTor = false,
         shouldUploadZips = true,
         shouldUploadFileLists = true,
         shouldUploadGetprop = true,
         shouldUploadAppLogs = true,
+        maxUploadRetries = 5,
         zipEncryption = ZipEncryption.NONE,
         selectedService = uploadRepository,
         maxBatches = 0,

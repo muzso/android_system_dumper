@@ -38,6 +38,6 @@ class FakeUploadRepository : UploadRepository {
         urlListUrl = ""
     }
     override suspend fun getUrlListUrl(): String = urlListUrl
-    override suspend fun torCheck(): Boolean = true
+    override suspend fun torCheck(maxRetries: Int): Boolean = true
     override suspend fun logConfiguration() {}
 }

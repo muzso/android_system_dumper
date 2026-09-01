@@ -15,7 +15,6 @@ import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
 import hu.muzso.android_system_dumper.network.DefaultArchiveGenerator
 import hu.muzso.android_system_dumper.network.upload.UploadProgressTracker
 import hu.muzso.android_system_dumper.network.upload.UploadRepository
-import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.SystemInfo
 import hu.muzso.android_system_dumper.usecase.BatchFilesUseCase
 import hu.muzso.android_system_dumper.usecase.CleanupUseCase
@@ -44,7 +43,6 @@ class LoggingRegressionTest {
     private val createArchiveUseCase = mockk<CreateArchiveUseCase>(relaxed = true)
     private val uploadBatchUseCase = mockk<UploadBatchUseCase>(relaxed = true)
     private val cleanupUseCase = mockk<CleanupUseCase>(relaxed = true)
-    private val resourceProvider = mockk<ResourceProvider>(relaxed = true)
     private val uploadRepository = mockk<UploadRepository>(relaxed = true)
     private val progressTracker = mockk<UploadProgressTracker>(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -58,7 +56,7 @@ class LoggingRegressionTest {
             fileSystem, clock, logger, systemInfo, batchFilesUseCase, createArchiveUseCase, cleanupUseCase
         )
         useCase = UploadArchiveUseCase(
-            clock, logger, uploadBatchUseCase, cleanupUseCase, resourceProvider,
+            clock, logger, uploadBatchUseCase, cleanupUseCase,
             progressTracker, dispatcherProvider, archiveGenerator
         )
         every { progressTracker.totalUploadedBytes } returns MutableStateFlow(0L)
@@ -128,13 +126,14 @@ class LoggingRegressionTest {
     }
 
     private fun createParameters() = UploadParameters(
-        customBatchSizeMb = "10",
+        customBatchSizeMb = 10,
         proxySpecification = "",
         shouldUseTor = false,
         shouldUploadZips = false,
         shouldUploadFileLists = false,
         shouldUploadGetprop = false,
         shouldUploadAppLogs = false,
+        maxUploadRetries = 5,
         zipEncryption = ZipEncryption.NONE,
         selectedService = uploadRepository,
         maxBatches = 0,

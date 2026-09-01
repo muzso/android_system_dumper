@@ -73,13 +73,14 @@ class DoubleZippingFilenameTest {
         )
         
         val parameters = UploadParameters(
-            customBatchSizeMb = "1",
+            customBatchSizeMb = 1,
             proxySpecification = "",
             shouldUseTor = false,
             shouldUploadZips = true,
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = 5,
             zipEncryption = ZipEncryption.NONE,
             selectedService = mockk(),
             maxBatches = 0,
@@ -107,13 +108,14 @@ class DoubleZippingFilenameTest {
         fileSystem.addFileOfSize("/data/file1.txt", 100)
 
         val parameters = UploadParameters(
-            customBatchSizeMb = "1",
+            customBatchSizeMb = 1,
             proxySpecification = "",
             shouldUseTor = false,
             shouldUploadZips = false,
             shouldUploadFileLists = true,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = 5,
             zipEncryption = ZipEncryption.NONE,
             selectedService = mockk(),
             maxBatches = 0,

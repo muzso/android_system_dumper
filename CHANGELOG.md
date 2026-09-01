@@ -4,9 +4,37 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-09-01
+
+### Added
+
+- New input field `Retry limit`. Controls the maximum number of retry attempts for file uploads and Tor check requests.
+
+### Changed
+
+- UI defaults got centralized. Previously all default values were stored in two places.
+
+### Fixed
+
+- `customBatchSize` was String in `UploadParameters`, but other numeric fields were already Int.
+
 ## [1.1.2] - 2026-08-31
 
+### Added
 
+- Introduced the NETWORK_TIMEOUT_MS configuration parameter for .env files. Controls HTTP connect, read and write timeouts with a 30s default.
+
+### Changed
+
+- `strings.xml` was consolidated: a number of similar strings were merged together or replaced by a template and other shorter strings.
+- The five "List of ..." toggles on the main screen were merged into a single "File lists" toggle.
+- The "TOR" icon in the top-right corner of the main screen has been renamed back to "IP", because it's actually independent of the "Use Tor network" toggle. If the latter is disabled, then the IP Information screen shows GeoIP info on the real IP of the device.
+
+### Fixed
+
+- A number of string literals were moved into `strings.xml`.
+- There was a bug in both the upload and download progress indicators (progress bar and progress texts): the progress indicators were driven by written bytes of network connections, thus when the upload of a file finished, its last state of progress remained visible even while the next file was being prepared (e.g. next ZIP was being created). These are now fixed.
+- Previously if an HTTP call timed out or failed and Tor was used, the Tor circuits were rebuilt and the HTTP call retried. Testing on real devices showed that this doesn't always solve the problem and the retries fail too. This was now changed to restart the entire Tor service before a retry is attempted.
 
 ## [1.1.1] - 2026-08-30
 
@@ -66,6 +94,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial release (feature complete and mostly stable)
 
+[1.1.3]: https://github.com/muzso/android_system_dumper/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/muzso/android_system_dumper/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/muzso/android_system_dumper/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/muzso/android_system_dumper/compare/1.0.1...1.1.0

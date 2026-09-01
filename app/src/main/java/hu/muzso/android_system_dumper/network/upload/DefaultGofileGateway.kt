@@ -166,7 +166,7 @@ class DefaultGofileGateway @Inject constructor(
         lastUsedClient = null
     }
 
-    override suspend fun torCheck(): Boolean = torChecker.check()
+    override suspend fun torCheck(maxRetries: Int): Boolean = torChecker.check(maxRetries)
 
     override fun logConfiguration() {
         logger.i(TAG, httpClientProvider.getClient().configurationToString())

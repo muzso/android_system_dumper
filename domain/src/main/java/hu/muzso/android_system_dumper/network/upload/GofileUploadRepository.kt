@@ -73,7 +73,7 @@ class GofileUploadRepository @Inject constructor(
 
     override suspend fun getUrlListUrl(): String = urlListUrl
     
-    override suspend fun torCheck(): Boolean = gateway.torCheck()
+    override suspend fun torCheck(maxRetries: Int): Boolean = gateway.torCheck(maxRetries)
 
     override suspend fun logConfiguration() {
         gateway.logConfiguration()

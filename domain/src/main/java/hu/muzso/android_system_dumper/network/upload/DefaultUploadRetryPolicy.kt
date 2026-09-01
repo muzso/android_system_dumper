@@ -37,19 +37,19 @@ class DefaultUploadRetryPolicy @Inject constructor(
         onFailure: suspend (attempt: Int, ex: Exception) -> Unit,
         block: suspend () -> T
     ): T {
-        if (retries < 1) throw IllegalArgumentException("retries must be > 0")
+        val maxAttempts = if (retries < 1) Int.MAX_VALUE else retries
         var ex: Exception? = null
-        for (attempt in 1..retries) {
+        for (attempt in 1..maxAttempts) {
             onStatusUpdate(label, attempt, retries)
             logger.d(TAG, "withRetry: attempt $attempt for $label")
             try {
                 return block()
             } catch (e: Exception) {
                 if (e is CancellationException || e is TerminalUploadException) throw e
-                logger.e(TAG, "Attempt $attempt of $retries failed for $label: ${e.message}", e)
+                logger.e(TAG, "Attempt $attempt of $maxAttempts failed for $label: ${e.message}", e)
                 ex = e
                 onFailure(attempt, e)
-                if (attempt < retries) delay(1000.milliseconds)
+                if (attempt < maxAttempts) delay(1000.milliseconds)
             }
         }
         throw ex!!

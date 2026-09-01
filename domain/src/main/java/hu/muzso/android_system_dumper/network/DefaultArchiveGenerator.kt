@@ -38,7 +38,7 @@ class DefaultArchiveGenerator @Inject constructor(
         this.scanResult = scanResult
         this.startDate = Date.from(clock.now())
 
-        val batchSizeMb = parameters.customBatchSizeMb.toLongOrNull() ?: 0L
+        val batchSizeMb = parameters.customBatchSizeMb.toLong()
         val batchSizeInBytes = batchSizeMb * 1024L * 1024L
         val activeFilesList = scanResult.readableFiles.map { it.path }
         val currentFileSizes = scanResult.readableFiles.associate { it.path to it.size }

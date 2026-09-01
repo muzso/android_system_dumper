@@ -46,7 +46,7 @@ Standard ZIP files don't allow the encryption of the central directory, thus the
 
 To work around this problem, you can enable the "Use double-zipping" option. This will first package the collected files into a plain (i.e. not encrypted) ZIP with compression, then package this ZIP into another ZIP with encryption and no compression. Based on my tests double-zipping is not slower in upload scenarios and the difference in running time for downloads is negligible (e.g. 62s vs. 57s).
 
-Using this feature will prevent e.g. the file sharing service (where the app uploads the ZIPs) from looking even at the file listing in the ZIPs' central directories. Also, double-zipping might provide some level of protection against known-plaintext attacks on the standard ZipCrypto encryption.
+This feature prevents e.g. the file sharing service (where the app uploads the ZIPs) from looking even at the file listing in the ZIPs' central directories. Also, double-zipping might provide some level of protection against known-plaintext attacks on the standard ZipCrypto encryption.
 
 If you want maximum privacy, switch the encryption method to AES, but you might need a third-party app to decrypt the ZIPs (e.g. Windows 11 doesn't support AES encrypted ZIPs out-of-the-box).
 

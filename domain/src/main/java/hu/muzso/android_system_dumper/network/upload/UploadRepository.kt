@@ -12,7 +12,7 @@ interface UploadRepository {
     fun upload(filePath: String, fileName: String): Flow<UploadResult>
     suspend fun reset()
     suspend fun getUrlListUrl(): String
-    suspend fun torCheck(): Boolean
+    suspend fun torCheck(maxRetries: Int): Boolean
 
     /**
      * Logs the current configuration of the underlying HTTP client.

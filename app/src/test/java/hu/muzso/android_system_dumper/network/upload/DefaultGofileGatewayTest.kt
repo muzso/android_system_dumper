@@ -245,11 +245,11 @@ class DefaultGofileGatewayTest {
 
     @Test
     fun `torCheck delegates to TorChecker`() = runTest(testDispatcher) {
-        coEvery { torChecker.check() } returns true
+        coEvery { torChecker.check(any()) } returns true
         
-        val result = gateway.torCheck()
+        val result = gateway.torCheck(5)
         
         assertThat(result).isTrue()
-        coVerify { torChecker.check() }
+        coVerify { torChecker.check(5) }
     }
 }

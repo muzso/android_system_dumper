@@ -27,7 +27,6 @@ import hu.muzso.android_system_dumper.network.upload.GofileUploadRepository
 import hu.muzso.android_system_dumper.network.upload.TorChecker
 import hu.muzso.android_system_dumper.network.upload.gateway.GatewayResult
 import hu.muzso.android_system_dumper.network.upload.gateway.GofileUploadDomainModel
-import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.SystemInfo
 import hu.muzso.android_system_dumper.repository.SettingsRepository
 import hu.muzso.android_system_dumper.scan.DefaultArchiveRepository
@@ -58,7 +57,6 @@ class SystemDumperIntegrationTest {
     private val torService = FakeTorServiceController()
 
     private val randomProvider = mockk<RandomProvider>()
-    private val resourceProvider = mockk<ResourceProvider>()
     private val systemInfo = mockk<SystemInfo>()
     private val settingsRepository = mockk<SettingsRepository>()
 
@@ -106,14 +104,12 @@ class SystemDumperIntegrationTest {
             logger = logger,
             uploadBatchUseCase = uploadBatchUseCase,
             cleanupUseCase = cleanupUseCase,
-            resourceProvider = resourceProvider,
             progressTracker = progressTracker,
             dispatcherProvider = dispatcherProvider,
             archiveGenerator = archiveGenerator
         )
 
         every { randomProvider.getRandom() } returns Random(42)
-        every { resourceProvider.getMaxUploadRetries() } returns 3
         every { settingsRepository.getSelectedUploadServiceId() } returns gofileRepository.id
     }
 
@@ -139,13 +135,14 @@ class SystemDumperIntegrationTest {
         )
 
         val parameters = UploadParameters(
-            customBatchSizeMb = "1",
+            customBatchSizeMb = 1,
             proxySpecification = "",
             shouldUseTor = false,
             shouldUploadZips = true,
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = 3,
             zipEncryption = ZipEncryption.NONE,
             selectedService = gofileRepository,
             maxBatches = 0,

@@ -88,15 +88,41 @@ class DefaultUploadRetryPolicyTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `withRetry throws if retries is less than 1`() = runTest {
-        retryPolicy.withRetry(
+    @Test
+    fun `withRetry retries indefinitely when retries is 0`() = runTest {
+        val attempts = AtomicInteger(0)
+        val result = retryPolicy.withRetry(
             label = "Test",
             retries = 0,
             onStatusUpdate = { _, _, _ -> },
             onFailure = { _, _ -> }
         ) {
-            // fail
+            if (attempts.incrementAndGet() < 100) { // arbitrary high number
+                throw IOException("Transient error")
+            }
+            "success"
         }
+
+        assertThat(result).isEqualTo("success")
+        assertThat(attempts.get()).isEqualTo(100)
+    }
+
+    @Test
+    fun `withRetry retries indefinitely when retries is negative`() = runTest {
+        val attempts = AtomicInteger(0)
+        val result = retryPolicy.withRetry(
+            label = "Test",
+            retries = -1,
+            onStatusUpdate = { _, _, _ -> },
+            onFailure = { _, _ -> }
+        ) {
+            if (attempts.incrementAndGet() < 50) {
+                throw IOException("Transient error")
+            }
+            "success"
+        }
+
+        assertThat(result).isEqualTo("success")
+        assertThat(attempts.get()).isEqualTo(50)
     }
 }

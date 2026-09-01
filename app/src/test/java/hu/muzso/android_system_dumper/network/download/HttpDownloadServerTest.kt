@@ -59,13 +59,14 @@ class HttpDownloadServerTest {
     }
 
     private fun createParameters() = UploadParameters(
-        customBatchSizeMb = "100",
+        customBatchSizeMb = 100,
         proxySpecification = "",
         shouldUseTor = false,
         shouldUploadZips = true,
         shouldUploadFileLists = true,
         shouldUploadGetprop = true,
         shouldUploadAppLogs = true,
+        maxUploadRetries = 5,
         zipEncryption = ZipEncryption.NONE,
         selectedService = FakeUploadRepository(),
         maxBatches = 0,

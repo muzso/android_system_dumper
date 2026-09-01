@@ -11,7 +11,6 @@ import hu.muzso.android_system_dumper.model.upload.UploadParameters
 import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
 import hu.muzso.android_system_dumper.network.ArchiveGenerator
 import hu.muzso.android_system_dumper.network.upload.UploadProgressTracker
-import hu.muzso.android_system_dumper.platform.ResourceProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
@@ -31,7 +30,6 @@ class UploadArchiveUseCase @Inject constructor(
     private val logger: FileLogger,
     private val uploadBatchUseCase: UploadBatchUseCase,
     private val cleanupUseCase: CleanupUseCase,
-    private val resourceProvider: ResourceProvider,
     private val progressTracker: UploadProgressTracker,
     private val dispatcherProvider: DispatcherProvider,
     private val archiveGenerator: ArchiveGenerator
@@ -57,7 +55,7 @@ class UploadArchiveUseCase @Inject constructor(
             parameters.selectedService.logConfiguration()
             progressTracker.reset()
             
-            val maxUploadRetries = resourceProvider.getMaxUploadRetries()
+            val maxUploadRetries = parameters.maxUploadRetries
 
             archiveGenerator.prepare(parameters, scanResult)
             val batchCount = archiveGenerator.getBatchCount()

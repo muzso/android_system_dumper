@@ -66,7 +66,7 @@ class UploadBatchUseCase(
                         if (torServiceController.restartTorService(60000L)) {
                             logger.i(tag, "Tor service restarted successfully. Verifying Tor connection...")
                             try {
-                                if (torChecker.check()) {
+                                if (torChecker.check(retries)) {
                                     logger.i(tag, "Tor verification successful")
                                 } else {
                                     val error = UploadError.TorVerificationFailed("Tor verification failed: requests not going through Tor")

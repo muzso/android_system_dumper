@@ -102,6 +102,7 @@ class UploadCancellationTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,

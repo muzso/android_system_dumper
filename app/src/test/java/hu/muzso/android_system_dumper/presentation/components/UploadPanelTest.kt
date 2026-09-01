@@ -33,6 +33,7 @@ class UploadPanelTest {
                     uploadUiState = UploadUiState(),
                     filesCount = 0,
                     onSetProxySpecification = {},
+                    onSetMaxUploadRetries = {},
                     onSetShouldUseTor = {},
                     onSelectService = {},
                     onToggleUploading = {},
@@ -56,6 +57,7 @@ class UploadPanelTest {
                     ),
                     filesCount = 10,
                     onSetProxySpecification = {},
+                    onSetMaxUploadRetries = {},
                     onSetShouldUseTor = {},
                     onSelectService = {},
                     onToggleUploading = {},
@@ -77,6 +79,7 @@ class UploadPanelTest {
                     uploadUiState = UploadUiState(),
                     filesCount = 10,
                     onSetProxySpecification = {},
+                    onSetMaxUploadRetries = {},
                     onSetShouldUseTor = { toggled.set(it) },
                     onSelectService = {},
                     onToggleUploading = {},
@@ -99,6 +102,7 @@ class UploadPanelTest {
                     uploadUiState = UploadUiState(),
                     filesCount = 10,
                     onSetProxySpecification = { proxy.set(it) },
+                    onSetMaxUploadRetries = {},
                     onSetShouldUseTor = {},
                     onSelectService = {},
                     onToggleUploading = {},
@@ -112,6 +116,29 @@ class UploadPanelTest {
     }
 
     @Test
+    fun maxUploadRetriesInputWorks() {
+        val retries = AtomicReference("")
+        composeTestRule.setContent {
+            AndroidSystemDumperTheme {
+                UploadPanel(
+                    settingsUiState = SettingsUiState(maxUploadRetries = ""),
+                    uploadUiState = UploadUiState(),
+                    filesCount = 10,
+                    onSetProxySpecification = {},
+                    onSetMaxUploadRetries = { retries.set(it) },
+                    onSetShouldUseTor = {},
+                    onSelectService = {},
+                    onToggleUploading = {},
+                    onStartHttpServer = {},
+                    formatBytes = { "" }
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("max_upload_retries_input").performTextInput("10")
+        Truth.assertThat(retries.get()).isEqualTo("10")
+    }
+
+    @Test
     fun httpServerButtonWorks() {
         val clicked = AtomicBoolean(false)
         composeTestRule.setContent {
@@ -121,6 +148,7 @@ class UploadPanelTest {
                     uploadUiState = UploadUiState(),
                     filesCount = 10,
                     onSetProxySpecification = {},
+                    onSetMaxUploadRetries = {},
                     onSetShouldUseTor = {},
                     onSelectService = {},
                     onToggleUploading = {},

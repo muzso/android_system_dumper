@@ -4,7 +4,6 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.logging.FileLogger
-import hu.muzso.android_system_dumper.platform.ResourceProvider
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import java.io.IOException
@@ -17,8 +16,7 @@ class DefaultTorChecker @Inject constructor(
     private val logger: FileLogger,
     private val retrofitBuilder: Retrofit.Builder,
     private val httpClientProvider: HttpClientProvider,
-    private val retryPolicy: UploadRetryPolicy,
-    private val resourceProvider: ResourceProvider
+    private val retryPolicy: UploadRetryPolicy
 ) : TorChecker {
     companion object {
         private const val TAG = "TorChecker"
@@ -38,14 +36,13 @@ class DefaultTorChecker @Inject constructor(
      * 
      * This method uses Retrofit to call a Tor check service (by default check.torproject.org).
      * It handles network errors and parses the JSON response to determine the Tor status.
-     * It uses the retry policy with the retry limit obtained from the resource provider.
+     * It uses the retry policy with the user-configured retry limit.
      *
+     * @param maxRetries The maximum number of retry attempts for the check.
      * @return True if the check confirms traffic is through Tor, false otherwise.
      * @throws IOException If the network request fails or the response cannot be parsed.
      */
-    override suspend fun check(): Boolean {
-        val maxRetries = resourceProvider.getMaxUploadRetries().coerceAtLeast(1)
-        
+    override suspend fun check(maxRetries: Int): Boolean {
         return retryPolicy.withRetry(
             label = "Tor Verification",
             retries = maxRetries,

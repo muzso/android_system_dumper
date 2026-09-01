@@ -67,7 +67,7 @@ class FilebinUploadRepository @Inject constructor(
 
     override suspend fun getUrlListUrl(): String = currentBin?.let { "$baseUrl$it/" } ?: ""
 
-    override suspend fun torCheck(): Boolean = gateway.torCheck()
+    override suspend fun torCheck(maxRetries: Int): Boolean = gateway.torCheck(maxRetries)
 
     override suspend fun logConfiguration() {
         gateway.logConfiguration()

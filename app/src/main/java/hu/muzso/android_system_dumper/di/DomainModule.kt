@@ -143,12 +143,11 @@ object DomainModule {
         logger: FileLogger,
         uploadBatchUseCase: UploadBatchUseCase,
         cleanupUseCase: CleanupUseCase,
-        resourceProvider: ResourceProvider,
         progressTracker: UploadProgressTracker,
         dispatcherProvider: DispatcherProvider,
         archiveGenerator: ArchiveGenerator
     ) = UploadArchiveUseCase(
-        clock, logger, uploadBatchUseCase, cleanupUseCase, resourceProvider,
+        clock, logger, uploadBatchUseCase, cleanupUseCase,
         progressTracker, dispatcherProvider, archiveGenerator
     )
 

@@ -6,16 +6,17 @@ import hu.muzso.android_system_dumper.model.ZipEncryption
 import hu.muzso.android_system_dumper.network.upload.UploadRepository
 
 data class SettingsUiState(
-    val customBatchSizeMb: String = "200",
-    val proxySpecification: String = "",
-    val shouldUseTor: Boolean = true,
-    val shouldUploadZips: Boolean = true,
-    val shouldUploadFileLists: Boolean = true,
-    val shouldUploadGetprop: Boolean = false,
-    val shouldUploadAppLogs: Boolean = false,
-    val zipEncryption: ZipEncryption = ZipEncryption.STANDARD,
-    val useDoubleZipping: Boolean = false,
-    val ignoreExcludeList: Boolean = false,
+    val customBatchSizeMb: String = DEFAULT_CUSTOM_BATCH_SIZE_MB,
+    val proxySpecification: String = DEFAULT_PROXY_SPECIFICATION,
+    val shouldUseTor: Boolean = DEFAULT_SHOULD_USE_TOR,
+    val shouldUploadZips: Boolean = DEFAULT_SHOULD_UPLOAD_ZIPS,
+    val shouldUploadFileLists: Boolean = DEFAULT_SHOULD_UPLOAD_FILE_LISTS,
+    val shouldUploadGetprop: Boolean = DEFAULT_SHOULD_UPLOAD_GETPROP,
+    val shouldUploadAppLogs: Boolean = DEFAULT_SHOULD_UPLOAD_APP_LOGS,
+    val zipEncryption: ZipEncryption = DEFAULT_ZIP_ENCRYPTION,
+    val useDoubleZipping: Boolean = DEFAULT_USE_DOUBLE_ZIPPING,
+    val ignoreExcludeList: Boolean = DEFAULT_IGNORE_EXCLUDE_LIST,
+    val maxUploadRetries: String = DEFAULT_MAX_UPLOAD_RETRIES,
     val selectedService: UploadRepository? = null,
     val services: List<UploadRepository> = emptyList(),
     val selectedIpSource: String = "",
@@ -23,7 +24,24 @@ data class SettingsUiState(
     val fatalError: String? = null,
     val exclusionList: List<String> = emptyList(),
     val discoveryRoots: List<String> = emptyList()
-)
+) {
+    companion object {
+        const val DEFAULT_CUSTOM_BATCH_SIZE_MB = "200"
+        const val DEFAULT_PROXY_SPECIFICATION = ""
+        const val DEFAULT_SHOULD_USE_TOR = true
+        const val DEFAULT_SHOULD_UPLOAD_ZIPS = true
+        const val DEFAULT_SHOULD_UPLOAD_FILE_LISTS = true
+        const val DEFAULT_SHOULD_UPLOAD_GETPROP = false
+        const val DEFAULT_SHOULD_UPLOAD_APP_LOGS = true
+        val DEFAULT_ZIP_ENCRYPTION = ZipEncryption.STANDARD
+        const val DEFAULT_USE_DOUBLE_ZIPPING = true
+        const val DEFAULT_IGNORE_EXCLUDE_LIST = false
+        const val DEFAULT_MAX_UPLOAD_RETRIES = "5"
+        
+        const val CUSTOM_BATCH_SIZE_MB_MIN = 1
+        const val CUSTOM_BATCH_SIZE_MB_MAX = 4000
+    }
+}
 
 sealed class AppState {
     object MainScreen : AppState()

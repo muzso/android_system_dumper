@@ -127,6 +127,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,
@@ -154,6 +155,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = mockk(relaxed = true),
@@ -194,6 +196,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,
@@ -228,6 +231,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,
@@ -299,6 +303,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,
@@ -336,6 +341,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,
@@ -376,6 +382,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,
@@ -416,6 +423,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,
@@ -453,6 +461,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,
@@ -470,7 +479,7 @@ class UploadViewModelTest {
     fun `startUploading aborts when Tor check fails`() = runTest {
         createViewModel()
         val uploadRepo = mockk<UploadRepository>(relaxed = true)
-        coEvery { uploadRepo.torCheck() } returns false
+        coEvery { uploadRepo.torCheck(any()) } returns false
         every { uploadRepo.totalUploadedBytes } returns MutableStateFlow(0L)
         repository.updateResult(ScanResult(readableFiles = listOf(FileEntry("/test", 100L, "source"))))
         every { validateUploadUseCase.execute(any()) } returns ValidateUploadUseCase.ValidationResult.Success
@@ -485,6 +494,7 @@ class UploadViewModelTest {
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = "5",
             zipEncryption = ZipEncryption.NONE,
             useDoubleZipping = false,
             selectedService = uploadRepo,

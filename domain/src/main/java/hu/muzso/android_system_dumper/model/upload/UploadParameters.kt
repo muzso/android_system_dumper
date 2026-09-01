@@ -4,13 +4,14 @@ import hu.muzso.android_system_dumper.model.ZipEncryption
 import hu.muzso.android_system_dumper.network.upload.UploadRepository
 
 data class UploadParameters(
-    val customBatchSizeMb: String,
+    val customBatchSizeMb: Int,
     val proxySpecification: String,
     val shouldUseTor: Boolean,
     val shouldUploadZips: Boolean,
     val shouldUploadFileLists: Boolean,
     val shouldUploadGetprop: Boolean,
     val shouldUploadAppLogs: Boolean,
+    val maxUploadRetries: Int,
     val zipEncryption: ZipEncryption,
     val useDoubleZipping: Boolean,
     val selectedService: UploadRepository,

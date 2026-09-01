@@ -10,7 +10,7 @@ interface FilebinGateway {
     ): Flow<GatewayResult<Unit>>
 
     fun setBaseUrl(url: String)
-    suspend fun torCheck(): Boolean
+    suspend fun torCheck(maxRetries: Int): Boolean
 
     /**
      * Logs the current configuration of the network client.

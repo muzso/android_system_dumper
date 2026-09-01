@@ -52,6 +52,7 @@ import hu.muzso.android_system_dumper.model.upload.UploadParameters
 import hu.muzso.android_system_dumper.presentation.DownloadViewModel
 import hu.muzso.android_system_dumper.presentation.SettingsViewModel
 import hu.muzso.android_system_dumper.presentation.state.DownloadUiState
+import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.widgets.SettingsDropdownSelector
 import kotlinx.coroutines.launch
 
@@ -75,13 +76,14 @@ fun DownloadScreen(
     LaunchedEffect(Unit) {
         val selectedService = settingsUiState.selectedService ?: settingsUiState.services.first()
         val uploadSettings = UploadParameters(
-            customBatchSizeMb = settingsUiState.customBatchSizeMb,
+            customBatchSizeMb = settingsUiState.customBatchSizeMb.toIntOrNull() ?: SettingsUiState.DEFAULT_CUSTOM_BATCH_SIZE_MB.toInt(),
             proxySpecification = settingsUiState.proxySpecification,
             shouldUseTor = false,
             shouldUploadZips = settingsUiState.shouldUploadZips,
             shouldUploadFileLists = settingsUiState.shouldUploadFileLists,
             shouldUploadGetprop = settingsUiState.shouldUploadGetprop,
             shouldUploadAppLogs = settingsUiState.shouldUploadAppLogs,
+            maxUploadRetries = settingsUiState.maxUploadRetries.toIntOrNull() ?: SettingsUiState.DEFAULT_MAX_UPLOAD_RETRIES.toInt(),
             zipEncryption = settingsUiState.zipEncryption,
             useDoubleZipping = settingsUiState.useDoubleZipping,
             selectedService = selectedService,

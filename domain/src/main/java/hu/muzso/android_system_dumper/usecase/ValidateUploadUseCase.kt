@@ -27,9 +27,9 @@ class ValidateUploadUseCase @Inject constructor(
     fun execute(parameters: UploadParameters): ValidationResult {
         val minBatchSize = resourceProvider.getMinBatchSizeMb()
         val maxBatchSize = resourceProvider.getMaxBatchSizeMb()
-        val batchSizeMb = parameters.customBatchSizeMb.toLongOrNull()
+        val batchSizeMb = parameters.customBatchSizeMb
         
-        if (batchSizeMb == null || batchSizeMb < minBatchSize || batchSizeMb > maxBatchSize) {
+        if (batchSizeMb < minBatchSize || batchSizeMb > maxBatchSize) {
             return ValidationResult.Error.InvalidBatchSize(minBatchSize, maxBatchSize)
         }
 

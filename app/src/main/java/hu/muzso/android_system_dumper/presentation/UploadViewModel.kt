@@ -16,6 +16,7 @@ import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
 import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.UiMessenger
+import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.UploadResult
 import hu.muzso.android_system_dumper.presentation.state.UploadUiState
 import hu.muzso.android_system_dumper.presentation.state.reduce
@@ -129,13 +130,14 @@ class UploadViewModel @Inject constructor(
      */
     private fun startUploading(settings: UploadSettings) {
         val parameters = UploadParameters(
-            customBatchSizeMb = settings.customBatchSizeMb,
+            customBatchSizeMb = settings.customBatchSizeMb.toIntOrNull() ?: -1,
             proxySpecification = settings.proxySpecification,
             shouldUseTor = settings.shouldUseTor,
             shouldUploadZips = settings.shouldUploadZips,
             shouldUploadFileLists = settings.shouldUploadFileLists,
             shouldUploadGetprop = settings.shouldUploadGetprop,
             shouldUploadAppLogs = settings.shouldUploadAppLogs,
+            maxUploadRetries = settings.maxUploadRetries.toIntOrNull() ?: SettingsUiState.DEFAULT_MAX_UPLOAD_RETRIES.toInt(),
             zipEncryption = settings.zipEncryption,
             useDoubleZipping = settings.useDoubleZipping,
             selectedService = settings.selectedService,
@@ -172,7 +174,7 @@ class UploadViewModel @Inject constructor(
         uploadJob = viewModelScope.launch {
             if (parameters.shouldUseTor) {
                 try {
-                    val isTor = settings.selectedService.torCheck()
+                    val isTor = settings.selectedService.torCheck(parameters.maxUploadRetries)
                     if (!isTor) {
                         settings.onFatalError(resourceProvider.getString(R.string.traffic_doesnt_go_through_tor_error))
                         updateState { reduce(it, UploadResult.UploadError).copy(uploadStatusText = "") }
@@ -199,14 +201,14 @@ class UploadViewModel @Inject constructor(
                         updateState { 
                             val s1 = reduce(it, UploadResult.ResetProgress)
                             reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
-                                R.string.archiving_batch_of, status.current, status.total)))
+                                R.string.archiving_batch, status.current, status.total)))
                         }
                     }
                     is UploadWorkflowStatus.UploadingBatch -> {
                         updateState { 
                             val s1 = reduce(it, UploadResult.ResetProgress)
                             reduce(s1, UploadResult.StatusTextChanged(resourceProvider.getString(
-                                R.string.uploading_attempt_of, status.label, status.attempt, status.totalRetries)))
+                                R.string.uploading_attempt, status.label, status.attempt)))
                         }
                     }
                     UploadWorkflowStatus.CreatingReadableList -> {
@@ -344,6 +346,7 @@ class UploadViewModel @Inject constructor(
         val shouldUploadFileLists: Boolean,
         val shouldUploadGetprop: Boolean,
         val shouldUploadAppLogs: Boolean,
+        val maxUploadRetries: String,
         val zipEncryption: ZipEncryption,
         val useDoubleZipping: Boolean,
         val selectedService: UploadRepository,

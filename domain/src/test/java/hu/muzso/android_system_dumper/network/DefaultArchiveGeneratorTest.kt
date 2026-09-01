@@ -47,7 +47,7 @@ class DefaultArchiveGeneratorTest {
         val params = mockk<UploadParameters>(relaxed = true)
         every { params.shouldUploadZips } returns true
         every { params.zipEncryption } returns ZipEncryption.STANDARD
-        every { params.customBatchSizeMb } returns "200"
+        every { params.customBatchSizeMb } returns 200
         every { params.maxBatches } returns 0
         every { createArchiveUseCase.generatePassphrase(any()) } returns "passphrase123"
         every { batchFilesUseCase.execute(any(), any(), any(), any()) } returns listOf(listOf("file1"), listOf("file2"))

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import hu.muzso.android_system_dumper.R
+import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -17,21 +18,13 @@ class AndroidResourceProviderTest {
     private val resourceProvider = AndroidResourceProvider(context)
 
     @Test
-    fun `getMaxUploadRetries returns integer resource`() {
-        val expected = context.resources.getInteger(R.integer.max_number_of_upload_retries)
-        assertThat(resourceProvider.getMaxUploadRetries()).isEqualTo(expected)
+    fun `getMinBatchSizeMb returns constant`() {
+        assertThat(resourceProvider.getMinBatchSizeMb()).isEqualTo(SettingsUiState.CUSTOM_BATCH_SIZE_MB_MIN)
     }
 
     @Test
-    fun `getMinBatchSizeMb returns integer resource`() {
-        val expected = context.resources.getInteger(R.integer.custom_batch_size_mb_min)
-        assertThat(resourceProvider.getMinBatchSizeMb()).isEqualTo(expected)
-    }
-
-    @Test
-    fun `getMaxBatchSizeMb returns integer resource`() {
-        val expected = context.resources.getInteger(R.integer.custom_batch_size_mb_max)
-        assertThat(resourceProvider.getMaxBatchSizeMb()).isEqualTo(expected)
+    fun `getMaxBatchSizeMb returns constant`() {
+        assertThat(resourceProvider.getMaxBatchSizeMb()).isEqualTo(SettingsUiState.CUSTOM_BATCH_SIZE_MB_MAX)
     }
 
     @Test

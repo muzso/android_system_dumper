@@ -103,14 +103,12 @@ class UploadPipelineIntegrationTest {
             logger = logger,
             uploadBatchUseCase = uploadBatchUseCase,
             cleanupUseCase = cleanupUseCase,
-            resourceProvider = resourceProvider,
             progressTracker = progressTracker,
             dispatcherProvider = dispatcherProvider,
             archiveGenerator = archiveGenerator
         )
 
         every { randomProvider.getRandom() } returns Random(42)
-        every { resourceProvider.getMaxUploadRetries() } returns 3
         every { settingsRepository.getSelectedUploadServiceId() } returns gofileRepository.id
     }
 
@@ -128,13 +126,14 @@ class UploadPipelineIntegrationTest {
         )
 
         val parameters = UploadParameters(
-            customBatchSizeMb = "1", // 1MB batch size, so both files fit in one batch
+            customBatchSizeMb = 1, // 1MB batch size, so both files fit in one batch
             proxySpecification = "",
             shouldUseTor = false,
             shouldUploadZips = true,
             shouldUploadFileLists = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
+            maxUploadRetries = 5,
             zipEncryption = ZipEncryption.NONE,
             selectedService = gofileRepository,
             maxBatches = 0,
@@ -234,7 +233,6 @@ class UploadPipelineIntegrationTest {
             logger = logger,
             uploadBatchUseCase = customUploadBatchUseCase,
             cleanupUseCase = cleanupUseCase,
-            resourceProvider = resourceProvider,
             progressTracker = customProgressTracker,
             dispatcherProvider = dispatcherProvider,
             archiveGenerator = customArchiveGenerator
@@ -292,7 +290,7 @@ class UploadPipelineIntegrationTest {
             fileSystem, clock, logger, systemInfo, batchFilesUseCase, createArchiveUseCase, cleanupUseCase
         )
         val customUseCase = UploadArchiveUseCase(
-            clock, logger, customUploadBatchUseCase, cleanupUseCase, resourceProvider,
+            clock, logger, customUploadBatchUseCase, cleanupUseCase,
             customProgressTracker, dispatcherProvider, customArchiveGenerator
         )
 
@@ -330,7 +328,7 @@ class UploadPipelineIntegrationTest {
         // Force partitioning into 2 batches
         every { resourceProvider.getMinBatchSizeMb() } returns 1
         val parameters = createSimpleParameters().copy(
-            customBatchSizeMb = "0" // This might be tricky depending on BatchingLogic, let's assume we can force it
+            customBatchSizeMb = 0 // This might be tricky depending on BatchingLogic, let's assume we can force it
         )
 
         // Mocking BatchFilesUseCase directly to be sure
@@ -348,7 +346,7 @@ class UploadPipelineIntegrationTest {
             fileSystem, clock, logger, systemInfo, mockBatchFilesUseCase, createArchiveUseCase, cleanupUseCase
         )
         val customUseCase = UploadArchiveUseCase(
-            clock, logger, uploadBatchUseCase, cleanupUseCase, resourceProvider,
+            clock, logger, uploadBatchUseCase, cleanupUseCase,
             progressTracker, dispatcherProvider, customArchiveGenerator
         )
 
@@ -414,13 +412,14 @@ class UploadPipelineIntegrationTest {
     }
 
     private fun createSimpleParameters() = UploadParameters(
-        customBatchSizeMb = "1",
+        customBatchSizeMb = 1,
         proxySpecification = "",
         shouldUseTor = false,
         shouldUploadZips = true,
         shouldUploadFileLists = false,
         shouldUploadGetprop = false,
         shouldUploadAppLogs = false,
+        maxUploadRetries = 3,
         zipEncryption = ZipEncryption.NONE,
         selectedService = gofileRepository,
         maxBatches = 0,

@@ -103,6 +103,7 @@ fun MainScreen(
         onSetShouldUploadFileLists = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadFileLists(it)) },
         onSetShouldUploadGetprop = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadGetprop(it)) },
         onSetShouldUploadAppLogs = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadAppLogs(it)) },
+        onSetMaxUploadRetries = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetMaxUploadRetries(it)) },
         onSetZipEncryption = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetZipEncryption(it)) },
         onSetUseDoubleZipping = { settingsViewModel.processIntent(SettingsViewModel.Intent.SetUseDoubleZipping(it)) },
         onSelectService = { settingsViewModel.processIntent(SettingsViewModel.Intent.SelectService(it)) },
@@ -117,6 +118,7 @@ fun MainScreen(
                     shouldUploadFileLists = settingsUiState.shouldUploadFileLists,
                     shouldUploadGetprop = settingsUiState.shouldUploadGetprop,
                     shouldUploadAppLogs = settingsUiState.shouldUploadAppLogs,
+                    maxUploadRetries = settingsUiState.maxUploadRetries,
                     zipEncryption = settingsUiState.zipEncryption,
                     useDoubleZipping = settingsUiState.useDoubleZipping,
                     selectedService = service,
@@ -160,6 +162,7 @@ fun MainScreen(
  * @param onSetShouldUploadFileLists Callback to toggle uploading various file lists.
  * @param onSetShouldUploadGetprop Callback to toggle uploading system properties.
  * @param onSetShouldUploadAppLogs Callback to toggle uploading application logs.
+ * @param onSetMaxUploadRetries Callback to update the maximum number of upload retries.
  * @param onSetZipEncryption Callback to update the ZIP encryption method.
  * @param onSelectService Callback to change the selected upload service.
  * @param onToggleUploading Callback to start or stop the upload process.
@@ -186,6 +189,7 @@ fun MainScreenContent(
     onSetShouldUploadFileLists: (Boolean) -> Unit,
     onSetShouldUploadGetprop: (Boolean) -> Unit,
     onSetShouldUploadAppLogs: (Boolean) -> Unit,
+    onSetMaxUploadRetries: (String) -> Unit,
     onSetZipEncryption: (ZipEncryption) -> Unit,
     onSetUseDoubleZipping: (Boolean) -> Unit,
     onSelectService: (UploadRepository) -> Unit,
@@ -296,6 +300,7 @@ fun MainScreenContent(
                 uploadUiState = uploadUiState,
                 filesCount = scanUiState.filesCount,
                 onSetProxySpecification = onSetProxySpecification,
+                onSetMaxUploadRetries = onSetMaxUploadRetries,
                 onSetShouldUseTor = onSetShouldUseTor,
                 onSelectService = onSelectService,
                 onToggleUploading = onToggleUploading,
@@ -355,6 +360,7 @@ private fun MainScreenContentPreview() {
             onSetShouldUploadFileLists = {},
             onSetShouldUploadGetprop = {},
             onSetShouldUploadAppLogs = {},
+            onSetMaxUploadRetries = {},
             onSetZipEncryption = {},
             onSetUseDoubleZipping = {},
             onSelectService = {},

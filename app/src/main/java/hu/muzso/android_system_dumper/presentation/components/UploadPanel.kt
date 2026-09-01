@@ -48,6 +48,7 @@ import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
  * @param uploadUiState The current upload UI state.
  * @param filesCount The number of files found during the scan.
  * @param onSetProxySpecification Callback to update the proxy specification.
+ * @param onSetMaxUploadRetries Callback to update the max upload retries.
  * @param onSetShouldUseTor Callback to toggle Tor usage.
  * @param onSelectService Callback to change the upload service.
  * @param onToggleUploading Callback to start or stop the upload.
@@ -60,6 +61,7 @@ fun UploadPanel(
     uploadUiState: UploadUiState,
     filesCount: Int,
     onSetProxySpecification: (String) -> Unit,
+    onSetMaxUploadRetries: (String) -> Unit,
     onSetShouldUseTor: (Boolean) -> Unit,
     onSelectService: (UploadRepository) -> Unit,
     onToggleUploading: () -> Unit,
@@ -94,6 +96,16 @@ fun UploadPanel(
                     itemLabel = { it.name }
                 )
             }
+            OutlinedTextField(
+                value = settingsUiState.maxUploadRetries,
+                onValueChange = onSetMaxUploadRetries,
+                label = { Text(stringResource(R.string.max_retries)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("max_upload_retries_input"),
+                singleLine = true
+            )
             OutlinedTextField(
                 value = settingsUiState.proxySpecification,
                 onValueChange = onSetProxySpecification,
@@ -245,6 +257,7 @@ fun UploadPanelPreview() {
             uploadUiState = UploadUiState(),
             filesCount = 10,
             onSetProxySpecification = {},
+            onSetMaxUploadRetries = {},
             onSetShouldUseTor = {},
             onSelectService = {},
             onToggleUploading = {},

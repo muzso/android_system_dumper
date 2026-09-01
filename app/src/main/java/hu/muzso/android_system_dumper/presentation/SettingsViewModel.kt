@@ -61,6 +61,7 @@ class SettingsViewModel @Inject constructor(
         data class SetShouldUploadFileLists(val value: Boolean) : Intent()
         data class SetShouldUploadGetprop(val value: Boolean) : Intent()
         data class SetShouldUploadAppLogs(val value: Boolean) : Intent()
+        data class SetMaxUploadRetries(val value: String) : Intent()
         data class SetZipEncryption(val value: ZipEncryption) : Intent()
         data class SetUseDoubleZipping(val value: Boolean) : Intent()
         data class SetIgnoreExcludeList(val value: Boolean) : Intent()
@@ -72,16 +73,17 @@ class SettingsViewModel @Inject constructor(
     private val _appState = MutableStateFlow<AppState>(AppState.MainScreen)
     val appState: StateFlow<AppState> = _appState.asStateFlow()
 
-    private val _ignoreExcludeList = savedStateHandle.getStateFlow("ignoreExcludeList", false)
-    private val _customBatchSizeMb = savedStateHandle.getStateFlow("customBatchSizeMb", "200")
-    private val _proxySpecification = savedStateHandle.getStateFlow("proxySpecification", "")
-    private val _shouldUseTor = savedStateHandle.getStateFlow("shouldUseTor", true)
-    private val _shouldUploadZips = savedStateHandle.getStateFlow("shouldUploadZips", true)
-    private val _shouldUploadFileLists = savedStateHandle.getStateFlow("shouldUploadFileLists", true)
-    private val _shouldUploadGetprop = savedStateHandle.getStateFlow("shouldUploadGetprop", false)
-    private val _shouldUploadAppLogs = savedStateHandle.getStateFlow("shouldUploadAppLogs", true)
-    private val _zipEncryption = savedStateHandle.getStateFlow("zipEncryption", ZipEncryption.STANDARD)
-    private val _useDoubleZipping = savedStateHandle.getStateFlow("useDoubleZipping", true)
+    private val _ignoreExcludeList = savedStateHandle.getStateFlow("ignoreExcludeList", SettingsUiState.DEFAULT_IGNORE_EXCLUDE_LIST)
+    private val _customBatchSizeMb = savedStateHandle.getStateFlow("customBatchSizeMb", SettingsUiState.DEFAULT_CUSTOM_BATCH_SIZE_MB)
+    private val _proxySpecification = savedStateHandle.getStateFlow("proxySpecification", SettingsUiState.DEFAULT_PROXY_SPECIFICATION)
+    private val _shouldUseTor = savedStateHandle.getStateFlow("shouldUseTor", SettingsUiState.DEFAULT_SHOULD_USE_TOR)
+    private val _shouldUploadZips = savedStateHandle.getStateFlow("shouldUploadZips", SettingsUiState.DEFAULT_SHOULD_UPLOAD_ZIPS)
+    private val _shouldUploadFileLists = savedStateHandle.getStateFlow("shouldUploadFileLists", SettingsUiState.DEFAULT_SHOULD_UPLOAD_FILE_LISTS)
+    private val _shouldUploadGetprop = savedStateHandle.getStateFlow("shouldUploadGetprop", SettingsUiState.DEFAULT_SHOULD_UPLOAD_GETPROP)
+    private val _shouldUploadAppLogs = savedStateHandle.getStateFlow("shouldUploadAppLogs", SettingsUiState.DEFAULT_SHOULD_UPLOAD_APP_LOGS)
+    private val _zipEncryption = savedStateHandle.getStateFlow("zipEncryption", SettingsUiState.DEFAULT_ZIP_ENCRYPTION)
+    private val _useDoubleZipping = savedStateHandle.getStateFlow("useDoubleZipping", SettingsUiState.DEFAULT_USE_DOUBLE_ZIPPING)
+    private val _maxUploadRetries = savedStateHandle.getStateFlow("maxUploadRetries", SettingsUiState.DEFAULT_MAX_UPLOAD_RETRIES)
     private val _selectedIpSource = savedStateHandle.getStateFlow("selectedIpSource", ipInfoRepository.getAvailableSources().first())
     private val _fatalError = MutableStateFlow<String?>(null)
 
@@ -92,8 +94,8 @@ class SettingsViewModel @Inject constructor(
     val uiState: StateFlow<SettingsUiState> = combine(
         _customBatchSizeMb, _proxySpecification, _shouldUseTor, _shouldUploadZips,
         _shouldUploadFileLists, _shouldUploadGetprop,
-        _shouldUploadAppLogs, _zipEncryption, _useDoubleZipping, _ignoreExcludeList, _selectedService,
-        _selectedIpSource, _fatalError
+        _shouldUploadAppLogs, _zipEncryption, _useDoubleZipping, _ignoreExcludeList,
+        _maxUploadRetries, _selectedService, _selectedIpSource, _fatalError
     ) { args ->
         @Suppress("UNCHECKED_CAST")
         SettingsUiState(
@@ -107,11 +109,12 @@ class SettingsViewModel @Inject constructor(
             zipEncryption = args[7] as ZipEncryption,
             useDoubleZipping = args[8] as Boolean,
             ignoreExcludeList = args[9] as Boolean,
-            selectedService = args[10] as UploadRepository,
+            maxUploadRetries = args[10] as String,
+            selectedService = args[11] as UploadRepository,
             services = services,
-            selectedIpSource = args[11] as String,
+            selectedIpSource = args[12] as String,
             availableIpSources = ipInfoRepository.getAvailableSources(),
-            fatalError = args[12] as String?,
+            fatalError = args[13] as String?,
             exclusionList = loadExcludeListUseCase.execute(),
             discoveryRoots = getSeedPathsUseCase.execute()
         )
@@ -154,6 +157,7 @@ class SettingsViewModel @Inject constructor(
             is Intent.SetShouldUploadFileLists -> savedStateHandle["shouldUploadFileLists"] = intent.value
             is Intent.SetShouldUploadGetprop -> savedStateHandle["shouldUploadGetprop"] = intent.value
             is Intent.SetShouldUploadAppLogs -> savedStateHandle["shouldUploadAppLogs"] = intent.value
+            is Intent.SetMaxUploadRetries -> savedStateHandle["maxUploadRetries"] = intent.value
             is Intent.SetZipEncryption -> {
                 savedStateHandle["zipEncryption"] = intent.value
                 if (intent.value == ZipEncryption.NONE) {

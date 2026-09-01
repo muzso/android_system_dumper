@@ -24,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.presentation.SettingsViewModel
+import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.utils.drawVerticalScrollbar
 import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
 
@@ -81,7 +81,7 @@ fun HelpContent(
         ) {
             HelpSection(title = stringResource(R.string.help_app_description_title), description = stringResource(R.string.help_app_description_description, stringResource(R.string.app_name)))
             HelpSection(title = stringResource(R.string.help_input_fields_controls_title), description = stringResource(R.string.help_input_fields_controls_description,
-                integerResource(R.integer.custom_batch_size_mb_min), integerResource(R.integer.custom_batch_size_mb_max)))
+                SettingsUiState.CUSTOM_BATCH_SIZE_MB_MIN, SettingsUiState.CUSTOM_BATCH_SIZE_MB_MAX))
             HelpSection(title = stringResource(R.string.help_features_title), description = stringResource(R.string.help_features_description))
             HelpSection(title = stringResource(R.string.help_privacy_title), description = stringResource(R.string.help_privacy_description))
             HelpSection(title = stringResource(R.string.help_exclusion_list_title), description = exclusionList.joinToString(separator = "\n• ", prefix = stringResource(R.string.help_exclusion_list_description) + "\n\n• "))

@@ -11,7 +11,7 @@ interface GofileGateway {
     ): Flow<GatewayResult<GofileUploadDomainModel>>
 
     fun setBaseUrl(url: String)
-    suspend fun torCheck(): Boolean
+    suspend fun torCheck(maxRetries: Int): Boolean
 
     /**
      * Logs the current configuration of the network client.

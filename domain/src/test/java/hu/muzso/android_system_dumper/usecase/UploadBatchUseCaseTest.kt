@@ -122,7 +122,7 @@ class UploadBatchUseCaseTest {
         
         // Verify Tor restart was triggered via onFailure
         assertThat(torService.restartTorServiceCalls.get()).isEqualTo(1)
-        coVerify(exactly = 1) { torChecker.check() }
+        coVerify(exactly = 1) { torChecker.check(any()) }
         coVerify(exactly = 1) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
     }
 
@@ -181,7 +181,7 @@ class UploadBatchUseCaseTest {
         }
 
         coEvery { executor.executeUpload(repository, any(), file.absolutePath, any()) } returns DomainResult.Error(expectedError)
-        coEvery { torChecker.check() } returns false // Confirming a leak/verification failure
+        coEvery { torChecker.check(any()) } returns false // Confirming a leak/verification failure
 
         val result = uploadBatchUseCase.execute(
             repository = repository,
@@ -201,6 +201,6 @@ class UploadBatchUseCaseTest {
         // Verify it stopped after 1 attempt because of TerminalUploadException
         coVerify(exactly = 1) { executor.executeUpload(repository, any(), file.absolutePath, any()) }
         assertThat(torService.restartTorServiceCalls.get()).isEqualTo(1)
-        coVerify(exactly = 1) { torChecker.check() }
+        coVerify(exactly = 1) { torChecker.check(any()) }
     }
 }

@@ -98,6 +98,7 @@ class SettingsViewModelTest {
         assertThat(state.customBatchSizeMb).isEqualTo("200")
         assertThat(state.shouldUseTor).isTrue()
         assertThat(state.zipEncryption).isEqualTo(ZipEncryption.STANDARD)
+        assertThat(state.maxUploadRetries).isEqualTo("5")
         assertThat(state.exclusionList).containsExactly("/excluded")
         assertThat(state.discoveryRoots).containsExactly("/seed")
         
@@ -111,7 +112,8 @@ class SettingsViewModelTest {
         val savedStateHandle = SavedStateHandle(mapOf(
             "customBatchSizeMb" to "500",
             "shouldUseTor" to false,
-            "zipEncryption" to ZipEncryption.AES
+            "zipEncryption" to ZipEncryption.AES,
+            "maxUploadRetries" to "10"
         ))
         createViewModel(savedStateHandle)
         val collectJob = launch { viewModel.uiState.collect {} }
@@ -121,6 +123,7 @@ class SettingsViewModelTest {
         assertThat(state.customBatchSizeMb).isEqualTo("500")
         assertThat(state.shouldUseTor).isFalse()
         assertThat(state.zipEncryption).isEqualTo(ZipEncryption.AES)
+        assertThat(state.maxUploadRetries).isEqualTo("10")
         
         // Tor service should NOT be started if shouldUseTor is false in SavedStateHandle
         verify(exactly = 0) { startTorUseCase.execute(any()) }
@@ -137,6 +140,19 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.uiState.value.customBatchSizeMb).isEqualTo("100")
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `SetMaxUploadRetries updates state`() = runTest {
+        createViewModel()
+        val collectJob = launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.processIntent(SettingsViewModel.Intent.SetMaxUploadRetries("3"))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.maxUploadRetries).isEqualTo("3")
         collectJob.cancel()
     }
 
