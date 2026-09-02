@@ -42,11 +42,19 @@ The app provides two ways to get the ZIP archives off the device:
 
 The default settings of the app provide reasonable privacy for the upload scenario.
 
-Standard ZIP files don't allow the encryption of the central directory, thus the list of included files is always visible even without knowing the passphrase or cracking the encryption.
+### Tor network
+
+By default, if you're using the upload scenario, the file sharing services will be able to see that an upload came from your IP address. Routing the network traffic through the [Tor network](https://en.wikipedia.org/wiki/Tor_(network)) protects you from this.
+
+Some network providers completely block Tor traffic, some block it only occasionally (perhaps due to some dynamic threat monitoring feature), in these cases you'll probably experience a network timeout in the "Preparing ..." phase of the upload process. 
+
+### ZIP central directory vs. encryption
+
+Standard ZIP files don't allow the encryption of the central directory, thus the list of included files (paths and file sizes) is always visible even without knowing the passphrase or cracking the encryption.
 
 To work around this problem, you can enable the "Use double-zipping" option. This will first package the collected files into a plain (i.e. not encrypted) ZIP with compression, then package this ZIP into another ZIP with encryption and no compression. Based on my tests double-zipping is not slower in upload scenarios and the difference in running time for downloads is negligible (e.g. 62s vs. 57s).
 
-This feature prevents e.g. the file sharing service (where the app uploads the ZIPs) from looking even at the file listing in the ZIPs' central directories. Also, double-zipping might provide some level of protection against known-plaintext attacks on the standard ZipCrypto encryption.
+Also, double-zipping might provide some level of protection against [known-plaintext attacks](https://en.wikipedia.org/wiki/ZIP_(file_format)#Encryption) on the standard ZipCrypto encryption.
 
 If you want maximum privacy, switch the encryption method to AES, but you might need a third-party app to decrypt the ZIPs (e.g. Windows 11 doesn't support AES encrypted ZIPs out-of-the-box).
 

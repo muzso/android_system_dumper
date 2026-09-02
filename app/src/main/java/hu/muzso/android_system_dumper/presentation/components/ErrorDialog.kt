@@ -29,7 +29,7 @@ import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
 
 @Composable
-fun FatalErrorDialog(
+fun ErrorDialog(
     error: String,
     onReset: () -> Unit
 ) {
@@ -54,7 +54,7 @@ fun FatalErrorDialog(
                     modifier = Modifier.size(48.dp)
                 )
                 Text(
-                    text = stringResource(R.string.fatal_error),
+                    text = stringResource(R.string.error),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onErrorContainer
@@ -76,7 +76,7 @@ fun FatalErrorDialog(
                         .height(48.dp)
                         .testTag("error_dismiss_button")
                 ) {
-                    Text(text = stringResource(R.string.reset), fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.close), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -85,8 +85,8 @@ fun FatalErrorDialog(
 
 @Preview
 @Composable
-fun FatalErrorDialogPreview() {
+fun ErrorDialogPreview() {
     AndroidSystemDumperTheme {
-        FatalErrorDialog(error = stringResource(R.string.fatal_error), onReset = {})
+        ErrorDialog(error = stringResource(R.string.error), onReset = {})
     }
 }

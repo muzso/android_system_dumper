@@ -12,36 +12,36 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
-class FatalErrorDialogTest {
+class ErrorDialogTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
     @Test
-    fun fatalErrorDialog_showsMessage() {
+    fun errorDialog_showsMessage() {
         val errorMessage = "Critical failure"
         composeTestRule.setContent {
-            FatalErrorDialog(
+            ErrorDialog(
                 error = errorMessage,
                 onReset = { }
             )
         }
 
-        composeTestRule.onNodeWithText("Fatal Error").assertExists()
+        composeTestRule.onNodeWithText("Error").assertExists()
         composeTestRule.onNodeWithText(errorMessage).assertExists()
     }
 
     @Test
-    fun fatalErrorDialog_resetButtonWorks() {
+    fun errorDialog_closeButtonWorks() {
         var resetCalled = false
         composeTestRule.setContent {
-            FatalErrorDialog(
+            ErrorDialog(
                 error = "Error",
                 onReset = { resetCalled = true }
             )
         }
 
-        composeTestRule.onNodeWithText("Reset").performClick()
+        composeTestRule.onNodeWithText("Close").performClick()
         Truth.assertThat(resetCalled).isTrue()
     }
 }

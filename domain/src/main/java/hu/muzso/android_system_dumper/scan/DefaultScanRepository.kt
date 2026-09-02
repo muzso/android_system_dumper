@@ -272,8 +272,9 @@ class DefaultScanRepository @Inject constructor(
                     reportFinalResult(finalResult)
                     flowCollector.emit(ScanStatus.FINISHED)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                if (e is CancellationException) throw e
                 logger.e(TAG, "Error during scanning", e)
                 reportFinalResult(collector.getCollectedResult())
                 val scanError = when (e) {

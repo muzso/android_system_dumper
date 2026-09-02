@@ -44,8 +44,11 @@ class DefaultUploadRetryPolicy @Inject constructor(
             logger.d(TAG, "withRetry: attempt $attempt for $label")
             try {
                 return block()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: TerminalUploadException) {
+                throw e
             } catch (e: Exception) {
-                if (e is CancellationException || e is TerminalUploadException) throw e
                 logger.e(TAG, "Attempt $attempt of $maxAttempts failed for $label: ${e.message}", e)
                 ex = e
                 onFailure(attempt, e)

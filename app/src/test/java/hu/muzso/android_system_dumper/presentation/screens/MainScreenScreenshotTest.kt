@@ -8,6 +8,8 @@ import hu.muzso.android_system_dumper.model.ScanState
 import hu.muzso.android_system_dumper.model.ScanStatus
 import hu.muzso.android_system_dumper.presentation.RoborazziTestConfigRule
 import hu.muzso.android_system_dumper.presentation.ScreenshotTestTheme
+import hu.muzso.android_system_dumper.presentation.state.FatalError
+import hu.muzso.android_system_dumper.presentation.state.FatalErrorPhase
 import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.UploadUiState
 import org.junit.Rule
@@ -283,7 +285,7 @@ class MainScreenScreenshotTest {
                 MainScreenContent(
                     scanUiState = ScanState(scanStatus = ScanStatus.IDLE),
                     settingsUiState = SettingsUiState(
-                        fatalError = "Application crashed due to missing permissions."
+                        fatalError = FatalError("Application crashed due to missing permissions.", FatalErrorPhase.UPLOAD)
                     ),
                     uploadUiState = UploadUiState(),
                     onResetResults = {},
@@ -321,7 +323,7 @@ class MainScreenScreenshotTest {
                 MainScreenContent(
                     scanUiState = ScanState(scanStatus = ScanStatus.IDLE),
                     settingsUiState = SettingsUiState(
-                        fatalError = "Application crashed due to missing permissions."
+                        fatalError = FatalError("Application crashed due to missing permissions.", FatalErrorPhase.UPLOAD)
                     ),
                     uploadUiState = UploadUiState(),
                     onResetResults = {},

@@ -93,8 +93,9 @@ class UploadArchiveUseCase @Inject constructor(
                                     delay(1000.milliseconds)
                                 }
                             }
+                        } catch (e: CancellationException) {
+                            throw e
                         } catch (e: Exception) {
-                            if (e is CancellationException) throw e
                             logger.e(TAG, "Failed to upload ${generatedZip.filename}", e)
                             delay(1000.milliseconds)
                         } finally {
@@ -140,8 +141,9 @@ class UploadArchiveUseCase @Inject constructor(
                                     logger.e(TAG, "Failed to upload misc ZIP: ${uploadResult.error}")
                                 }
                             }
+                        } catch (e: CancellationException) {
+                            throw e
                         } catch (e: Exception) {
-                            if (e is CancellationException) throw e
                             logger.e(TAG, "Failed to create/upload misc ZIP", e)
                         } finally {
                             archiveGenerator.cleanup(generatedZip.path)

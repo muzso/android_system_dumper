@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.muzso.android_system_dumper.R
 import hu.muzso.android_system_dumper.logging.FileLogger
+import kotlinx.coroutines.CancellationException
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import java.io.IOException
@@ -76,6 +77,8 @@ class DefaultTorChecker @Inject constructor(
             val isTor = response.isTor
             logger.i(TAG, "Tor check: ${if (isTor) "success" else "failure"}")
             isTor
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             val msg = context.getString(R.string.error_processing_response, e.message ?: "Network error")
             logger.e(TAG, "Error during Tor check: ${e.message}", e)

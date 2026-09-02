@@ -12,6 +12,7 @@ import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
 import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.network.upload.UploadRepositoryManager
 import hu.muzso.android_system_dumper.presentation.state.AppState
+import hu.muzso.android_system_dumper.presentation.state.FatalError
 import hu.muzso.android_system_dumper.presentation.state.SettingsResult
 import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.reduce
@@ -67,7 +68,7 @@ class SettingsViewModel @Inject constructor(
         data class SetIgnoreExcludeList(val value: Boolean) : Intent()
         data class SelectService(val service: UploadRepository) : Intent()
         data class SetSelectedIpSource(val source: String) : Intent()
-        data class SetFatalError(val error: String?) : Intent()
+        data class SetFatalError(val error: FatalError?) : Intent()
     }
 
     private val _appState = MutableStateFlow<AppState>(AppState.MainScreen)
@@ -85,7 +86,7 @@ class SettingsViewModel @Inject constructor(
     private val _useDoubleZipping = savedStateHandle.getStateFlow("useDoubleZipping", SettingsUiState.DEFAULT_USE_DOUBLE_ZIPPING)
     private val _maxUploadRetries = savedStateHandle.getStateFlow("maxUploadRetries", SettingsUiState.DEFAULT_MAX_UPLOAD_RETRIES)
     private val _selectedIpSource = savedStateHandle.getStateFlow("selectedIpSource", ipInfoRepository.getAvailableSources().first())
-    private val _fatalError = MutableStateFlow<String?>(null)
+    private val _fatalError = MutableStateFlow<FatalError?>(null)
 
     val services = uploadRepositoryManager.getRepositories().sortedBy { it.name }
 
@@ -114,7 +115,7 @@ class SettingsViewModel @Inject constructor(
             services = services,
             selectedIpSource = args[12] as String,
             availableIpSources = ipInfoRepository.getAvailableSources(),
-            fatalError = args[13] as String?,
+            fatalError = args[13] as FatalError?,
             exclusionList = loadExcludeListUseCase.execute(),
             discoveryRoots = getSeedPathsUseCase.execute()
         )

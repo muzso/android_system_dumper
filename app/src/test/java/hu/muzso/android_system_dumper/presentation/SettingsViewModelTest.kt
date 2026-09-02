@@ -11,6 +11,8 @@ import hu.muzso.android_system_dumper.network.upload.HttpClientProvider
 import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.network.upload.UploadRepositoryManager
 import hu.muzso.android_system_dumper.presentation.state.AppState
+import hu.muzso.android_system_dumper.presentation.state.FatalError
+import hu.muzso.android_system_dumper.presentation.state.FatalErrorPhase
 import hu.muzso.android_system_dumper.repository.IpInfoRepository
 import hu.muzso.android_system_dumper.usecase.GetSeedPathsUseCase
 import hu.muzso.android_system_dumper.usecase.LoadExcludeListUseCase
@@ -231,10 +233,11 @@ class SettingsViewModelTest {
         val collectJob = launch { viewModel.uiState.collect {} }
         advanceUntilIdle()
 
-        viewModel.processIntent(SettingsViewModel.Intent.SetFatalError("Something went wrong"))
+        val fatalError = FatalError("Something went wrong", FatalErrorPhase.UPLOAD)
+        viewModel.processIntent(SettingsViewModel.Intent.SetFatalError(fatalError))
         advanceUntilIdle()
         
-        assertThat(viewModel.uiState.value.fatalError).isEqualTo("Something went wrong")
+        assertThat(viewModel.uiState.value.fatalError).isEqualTo(fatalError)
         collectJob.cancel()
     }
 

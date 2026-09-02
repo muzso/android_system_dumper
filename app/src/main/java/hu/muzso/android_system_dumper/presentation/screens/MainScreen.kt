@@ -46,11 +46,13 @@ import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.presentation.ScanViewModel
 import hu.muzso.android_system_dumper.presentation.SettingsViewModel
 import hu.muzso.android_system_dumper.presentation.UploadViewModel
-import hu.muzso.android_system_dumper.presentation.components.FatalErrorDialog
+import hu.muzso.android_system_dumper.presentation.components.ErrorDialog
 import hu.muzso.android_system_dumper.presentation.components.FilesystemScanCard
 import hu.muzso.android_system_dumper.presentation.components.PackagingPanel
 import hu.muzso.android_system_dumper.presentation.components.ResultsCard
 import hu.muzso.android_system_dumper.presentation.components.UploadPanel
+import hu.muzso.android_system_dumper.presentation.state.FatalError
+import hu.muzso.android_system_dumper.presentation.state.FatalErrorPhase
 import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.UploadUiState
 import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
@@ -85,6 +87,17 @@ fun MainScreen(
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val uploadUiState by uploadViewModel.uiState.collectAsStateWithLifecycle()
     val noUploadServiceSelected = stringResource(R.string.no_upload_service_selected)
+
+    LaunchedEffect(scanUiState.scanStatus) {
+        val status = scanUiState.scanStatus
+        if (status is ScanStatus.ERROR) {
+            settingsViewModel.processIntent(
+                SettingsViewModel.Intent.SetFatalError(
+                    FatalError(status.error.toString(), FatalErrorPhase.SCANNING)
+                )
+            )
+        }
+    }
 
     MainScreenContent(
         scanUiState = scanUiState,
@@ -136,9 +149,12 @@ fun MainScreen(
         showShortToast = showShortToast,
         formatBytes = uploadViewModel::formatBytes,
         onResetFatalError = {
+            val fatalError = settingsUiState.fatalError
             settingsViewModel.processIntent(SettingsViewModel.Intent.SetFatalError(null))
             uploadViewModel.processIntent(UploadViewModel.Intent.ResetResults)
-            scanViewModel.processIntent(ScanAction.ResetResults)
+            if (fatalError?.phase == FatalErrorPhase.SCANNING) {
+                scanViewModel.processIntent(ScanAction.ResetResults)
+            }
         }
     )
 }
@@ -334,8 +350,8 @@ fun MainScreenContent(
         }
 
         settingsUiState.fatalError?.let { error ->
-            FatalErrorDialog(
-                error = error,
+            ErrorDialog(
+                error = error.message,
                 onReset = onResetFatalError
             )
         }

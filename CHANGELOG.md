@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-09-02
+
+### Changed
+
+- The "Reset" button in the fatal error dialog was renamed to "Close".
+- The "Fatal Error" dialog has been renamed to just "Error" and the message was renamed from "Upload crashed" to "Upload failed".
+
+### Fixed
+
+- Fatal errors during upload do not reset the filesystem scan results.
+- Stopping the upload during Tor checks doesn't throw a fatal error with a "StandaloneCoroutine was canceled" message anymore.
+
 ## [1.1.3] - 2026-09-01
 
 ### Added
@@ -51,7 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Removed
 
-- The "Is Tor Node" property has been removed from the Tor Checker screen's (JSON) content, because it didn't actually apply to the given GeoIP service's connection, it merely showed whether the Tor checker endpoint was reached through a Tor exit node.
+- The "Is Tor Node" property has been removed from the Tor Checker screen's (JSON) content, because it didn't actually apply to the given GeoIP service's connection. It merely showed whether the Tor checker endpoint was reached through a Tor exit node.
 
 ## [1.1.0] - 2026-08-29
 
@@ -94,6 +106,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial release (feature complete and mostly stable)
 
+[1.1.4]: https://github.com/muzso/android_system_dumper/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/muzso/android_system_dumper/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/muzso/android_system_dumper/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/muzso/android_system_dumper/compare/1.1.0...1.1.1

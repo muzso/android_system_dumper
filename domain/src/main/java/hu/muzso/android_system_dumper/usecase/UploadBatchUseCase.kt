@@ -73,8 +73,9 @@ class UploadBatchUseCase(
                                     logger.e(tag, error.message)
                                     throw TerminalUploadException(error)
                                 }
+                            } catch (e: TerminalUploadException) {
+                                throw e
                             } catch (e: Exception) {
-                                if (e is TerminalUploadException) throw e
                                 val error = UploadError.TorVerificationFailed("Tor verification failed with error: ${e.message}")
                                 logger.e(tag, error.message, e)
                                 throw TerminalUploadException(error)
@@ -87,8 +88,9 @@ class UploadBatchUseCase(
             ) {
                 uploadBlock()
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            if (e is CancellationException) throw e
             val error = when (e) {
                 is UploadRetryException -> e.error
                 is TerminalUploadException -> e.error

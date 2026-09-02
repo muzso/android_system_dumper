@@ -16,6 +16,8 @@ import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
 import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.UiMessenger
+import hu.muzso.android_system_dumper.presentation.state.FatalError
+import hu.muzso.android_system_dumper.presentation.state.FatalErrorPhase
 import hu.muzso.android_system_dumper.presentation.state.SettingsUiState
 import hu.muzso.android_system_dumper.presentation.state.UploadResult
 import hu.muzso.android_system_dumper.presentation.state.UploadUiState
@@ -24,6 +26,7 @@ import hu.muzso.android_system_dumper.scan.ScanRepository
 import hu.muzso.android_system_dumper.usecase.GenerateQrUseCase
 import hu.muzso.android_system_dumper.usecase.UploadArchiveUseCase
 import hu.muzso.android_system_dumper.usecase.ValidateUploadUseCase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -156,7 +159,7 @@ class UploadViewModel @Inject constructor(
                 ValidateUploadUseCase.ValidationResult.Error.NoUploadSelected ->
                     resourceProvider.getString(R.string.pre_flight_check_failed)
             }
-            settings.onFatalError(errorText)
+            settings.onFatalError(FatalError(errorText, FatalErrorPhase.UPLOAD))
             return
         }
 
@@ -176,13 +179,15 @@ class UploadViewModel @Inject constructor(
                 try {
                     val isTor = settings.selectedService.torCheck(parameters.maxUploadRetries)
                     if (!isTor) {
-                        settings.onFatalError(resourceProvider.getString(R.string.traffic_doesnt_go_through_tor_error))
+                        settings.onFatalError(FatalError(resourceProvider.getString(R.string.traffic_doesnt_go_through_tor_error), FatalErrorPhase.UPLOAD))
                         updateState { reduce(it, UploadResult.UploadError).copy(uploadStatusText = "") }
                         return@launch
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     logger.e(TAG, "Tor check failed", e)
-                    settings.onFatalError(resourceProvider.getString(R.string.upload_crashed, e.message ?: "Tor check error"))
+                    settings.onFatalError(FatalError(resourceProvider.getString(R.string.upload_failed, e.message ?: "Tor check error"), FatalErrorPhase.UPLOAD))
                     updateState { reduce(it, UploadResult.UploadError).copy(uploadStatusText = "") }
                     return@launch
                 }
@@ -299,7 +304,7 @@ class UploadViewModel @Inject constructor(
                             is UploadError.TorVerificationFailed -> resourceProvider.getString(R.string.traffic_doesnt_go_through_tor_error)
                             is UploadError.Unknown -> error.message
                         }
-                        settings.onFatalError(resourceProvider.getString(R.string.upload_crashed, errorMessage))
+                        settings.onFatalError(FatalError(resourceProvider.getString(R.string.upload_failed, errorMessage), FatalErrorPhase.UPLOAD))
                     }
                     UploadWorkflowStatus.Aborted -> {
                         updateState { reduce(it, UploadResult.UploadAborted).copy(
@@ -350,6 +355,6 @@ class UploadViewModel @Inject constructor(
         val zipEncryption: ZipEncryption,
         val useDoubleZipping: Boolean,
         val selectedService: UploadRepository,
-        val onFatalError: (String?) -> Unit
+        val onFatalError: (FatalError) -> Unit
     )
 }

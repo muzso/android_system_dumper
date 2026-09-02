@@ -17,6 +17,8 @@ import hu.muzso.android_system_dumper.model.upload.UploadWorkflowStatus
 import hu.muzso.android_system_dumper.network.upload.UploadRepository
 import hu.muzso.android_system_dumper.platform.ResourceProvider
 import hu.muzso.android_system_dumper.platform.UiMessenger
+import hu.muzso.android_system_dumper.presentation.state.FatalError
+import hu.muzso.android_system_dumper.presentation.state.FatalErrorPhase
 import hu.muzso.android_system_dumper.usecase.GenerateQrUseCase
 import hu.muzso.android_system_dumper.usecase.UploadArchiveUseCase
 import hu.muzso.android_system_dumper.usecase.ValidateUploadUseCase
@@ -118,7 +120,7 @@ class UploadViewModelTest {
         val validationError = ValidateUploadUseCase.ValidationResult.Error.InvalidBatchSize(1, 100)
         every { validateUploadUseCase.execute(any()) } returns validationError
 
-        var fatalErrorReceived: String? = null
+        var fatalErrorReceived: FatalError? = null
         val settings = UploadViewModel.UploadSettings(
             customBatchSizeMb = "500",
             proxySpecification = "",
@@ -138,6 +140,7 @@ class UploadViewModelTest {
         testScheduler.runCurrent()
 
         assertThat(fatalErrorReceived).isNotNull()
+        assertThat(fatalErrorReceived?.phase).isEqualTo(FatalErrorPhase.UPLOAD)
         assertThat(viewModel.uiState.value.isUploading).isFalse()
     }
 
@@ -452,7 +455,7 @@ class UploadViewModelTest {
         val statusFlow = flowOf(UploadWorkflowStatus.Error(error, 0L, 0L))
         every { uploadArchiveUseCase.execute(any(), any()) } returns statusFlow
 
-        var fatalErrorReceived: String? = null
+        var fatalErrorReceived: FatalError? = null
         val settings = UploadViewModel.UploadSettings(
             customBatchSizeMb = "200",
             proxySpecification = "",
@@ -472,7 +475,8 @@ class UploadViewModelTest {
         testScheduler.advanceUntilIdle()
         
         assertThat(viewModel.uiState.value.isUploading).isFalse()
-        assertThat(fatalErrorReceived).contains("No connection")
+        assertThat(fatalErrorReceived?.message).contains("No connection")
+        assertThat(fatalErrorReceived?.phase).isEqualTo(FatalErrorPhase.UPLOAD)
     }
 
     @Test
@@ -485,7 +489,7 @@ class UploadViewModelTest {
         every { validateUploadUseCase.execute(any()) } returns ValidateUploadUseCase.ValidationResult.Success
         every { resourceProvider.getString(R.string.traffic_doesnt_go_through_tor_error) } returns "Tor check failed"
 
-        var fatalErrorReceived: String? = null
+        var fatalErrorReceived: FatalError? = null
         val settings = UploadViewModel.UploadSettings(
             customBatchSizeMb = "200",
             proxySpecification = "9050",
@@ -505,7 +509,8 @@ class UploadViewModelTest {
         testScheduler.advanceUntilIdle()
         
         assertThat(viewModel.uiState.value.isUploading).isFalse()
-        assertThat(fatalErrorReceived).isEqualTo("Tor check failed")
+        assertThat(fatalErrorReceived?.message).isEqualTo("Tor check failed")
+        assertThat(fatalErrorReceived?.phase).isEqualTo(FatalErrorPhase.UPLOAD)
         verify(exactly = 0) { uploadArchiveUseCase.execute(any(), any()).run { } }
     }
 }

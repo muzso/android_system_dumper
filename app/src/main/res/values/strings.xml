@@ -62,7 +62,7 @@
 • File sharing service: Select the service to upload to.\n\n
 • Retry limit: Maximum number of retry attempts for a file upload. Also, the maximum number of retry attempts for a Tor check.\n\n
 • Proxy: Specify a proxy for HTTP requests. Can be an HTTP proxy (start with \"http://\") or a SOCKS proxy (either start with \"socks://\" or with the IP address or hostname). If you only enter a (TCP) port number, a SOCKS proxy will be assumed to listen on localhost (127.0.0.1) and the entered port.\n\n
-• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all file sharing services allow connections from Tor and/or the upload speed might be a lot slower. Toggling this off and on restarts the Tor service, thus you\'ll probably end up with a different exit node (i.e. public IP).\n\n
+• Use Tor network: If enabled, all outgoing traffic will be tunneled through the Tor network. Not all network providers and/or file sharing services allow connections from Tor, and the upload speed might be a lot slower. Toggling this off and on restarts the Tor service, thus you\'ll probably end up with a different exit node (i.e. public IP).\n\n
 </string>
     <string name="help_features_title">Features</string>
     <string name="help_features_description">• Cancellation scope: Hit \"Stop\" during the scan or upload phase to preserve and proceed with whatever has been already processed.\n\n
@@ -80,8 +80,8 @@ The output of the \"getprop\" command (this can be included in the uploads too) 
     <string name="help_discovery_roots_description">Filesystem scanning is recursive and starts from the following roots:</string>
     <string name="file_sharing_service">File sharing service</string>
     <string name="error">Error</string>
-    <string name="fatal_error">Fatal Error</string>
     <string name="reset">Reset</string>
+    <string name="close">Close</string>
     <string name="custom_batch_size_error">Invalid batch size! Enter a value between %1$d and %2$d MB.</string>
     <string name="invalid_proxy_error"><![CDATA[Invalid proxy specification: "%1$s"!\n
 Accepted formats are:\n
@@ -107,7 +107,7 @@ Accepted formats are:\n
     <string name="upload_partial_success">Partial upload! Successfully uploaded %1$d files out of %2$d (%3$s in %4$.2f minutes), %5$d upload(s) failed.</string>
     <string name="upload_zero_success">All uploads seem to have failed (in %1$.2f minutes), but a download URL is still available.</string>
     <string name="upload_error_empty_url">Uploaded %1$s in %2$.2f minutes, but no download URL is available.</string>
-    <string name="upload_crashed">Upload process crashed: %1$s</string>
+    <string name="upload_failed">Upload failed: %1$s</string>
     <string name="insufficient_cache_space_required">Insufficient cache space. Required: %1$s.</string>
     <string name="http_error_from">HTTP %1$d error: %2$s</string>
     <string name="error_processing_response">Error processing response: %1$s</string>

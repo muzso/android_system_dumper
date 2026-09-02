@@ -21,7 +21,7 @@ data class SettingsUiState(
     val services: List<UploadRepository> = emptyList(),
     val selectedIpSource: String = "",
     val availableIpSources: List<String> = emptyList(),
-    val fatalError: String? = null,
+    val fatalError: FatalError? = null,
     val exclusionList: List<String> = emptyList(),
     val discoveryRoots: List<String> = emptyList()
 ) {
@@ -42,6 +42,15 @@ data class SettingsUiState(
         const val CUSTOM_BATCH_SIZE_MB_MAX = 4000
     }
 }
+
+enum class FatalErrorPhase {
+    SCANNING, UPLOAD
+}
+
+data class FatalError(
+    val message: String,
+    val phase: FatalErrorPhase
+)
 
 sealed class AppState {
     object MainScreen : AppState()
