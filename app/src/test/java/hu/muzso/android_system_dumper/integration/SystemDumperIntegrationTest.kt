@@ -140,6 +140,7 @@ class SystemDumperIntegrationTest {
             shouldUseTor = false,
             shouldUploadZips = true,
             shouldUploadFileLists = false,
+            shouldUploadPlatformInfo = false,
             shouldUploadGetprop = false,
             shouldUploadAppLogs = false,
             maxUploadRetries = 3,

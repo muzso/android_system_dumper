@@ -207,4 +207,33 @@ class Zip4jZipCreatorIntegrationTest {
             assertThat(header.fileName).isEqualTo(unicodeName)
         }
     }
+
+    @Test
+    fun `verify double zipping with readIntoMemory maintains header size consistency`() = runTest(testDispatcher) {
+        val content = "initial log content"
+        val file = tempDir.resolve("log.txt").apply { writeText(content) }
+        val outputFile = tempDir.resolve("misc.zip").toFile()
+
+        val options = ZipOptions(
+            outputFilePath = outputFile.absolutePath,
+            encryptionMethod = ZipEncryption.NONE,
+            useDoubleZipping = true
+        )
+
+        val result = zipCreator.create(listOf(ZipFileEntry(file.toString(), "log.txt")), options, readIntoMemory = true)
+
+        assertThat(result).isInstanceOf(DomainResult.Success::class.java)
+
+        val extractedInnerZip = tempDir.resolve("misc.plain.zip").toFile()
+        ZipFile(outputFile).use { outerZip ->
+            outerZip.extractAll(tempDir.toString())
+        }
+
+        assertThat(extractedInnerZip.exists()).isTrue()
+        ZipFile(extractedInnerZip).use { innerZip ->
+            val logHeader = innerZip.getFileHeader("log.txt")
+            assertThat(logHeader).isNotNull()
+            assertThat(logHeader.uncompressedSize).isEqualTo(content.toByteArray().size.toLong())
+        }
+    }
 }

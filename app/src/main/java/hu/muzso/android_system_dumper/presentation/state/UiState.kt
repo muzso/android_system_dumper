@@ -11,6 +11,7 @@ data class SettingsUiState(
     val shouldUseTor: Boolean = DEFAULT_SHOULD_USE_TOR,
     val shouldUploadZips: Boolean = DEFAULT_SHOULD_UPLOAD_ZIPS,
     val shouldUploadFileLists: Boolean = DEFAULT_SHOULD_UPLOAD_FILE_LISTS,
+    val shouldUploadPlatformInfo: Boolean = DEFAULT_SHOULD_UPLOAD_PLATFORM_INFO,
     val shouldUploadGetprop: Boolean = DEFAULT_SHOULD_UPLOAD_GETPROP,
     val shouldUploadAppLogs: Boolean = DEFAULT_SHOULD_UPLOAD_APP_LOGS,
     val zipEncryption: ZipEncryption = DEFAULT_ZIP_ENCRYPTION,
@@ -31,6 +32,7 @@ data class SettingsUiState(
         const val DEFAULT_SHOULD_USE_TOR = true
         const val DEFAULT_SHOULD_UPLOAD_ZIPS = true
         const val DEFAULT_SHOULD_UPLOAD_FILE_LISTS = true
+        const val DEFAULT_SHOULD_UPLOAD_PLATFORM_INFO = true
         const val DEFAULT_SHOULD_UPLOAD_GETPROP = false
         const val DEFAULT_SHOULD_UPLOAD_APP_LOGS = true
         val DEFAULT_ZIP_ENCRYPTION = ZipEncryption.STANDARD

@@ -70,7 +70,7 @@ class DefaultArchiveGenerator @Inject constructor(
     override fun shouldGenerateMisc(): Boolean {
         val p = parameters ?: return false
         return p.shouldUploadFileLists || p.shouldUploadGetprop ||
-                p.shouldUploadAppLogs
+                p.shouldUploadPlatformInfo || p.shouldUploadAppLogs
     }
 
     override suspend fun generateBatch(index: Int): DomainResult<GeneratedZip, ZipError> {
@@ -146,6 +146,17 @@ class DefaultArchiveGenerator @Inject constructor(
                     val properties = systemInfo.getSystemProperties()
                     fileSystem.writeText(path, properties)
                 } catch (e: Exception) { logger.e("ArchiveGenerator", "getprop failed", e) }
+                if (fileSystem.exists(path) && fileSystem.size(path) > 0) {
+                    miscFiles.add(fileSystem.getCanonicalPath(path))
+                    filesToCleanUp.add(path)
+                }
+            }
+            if (p.shouldUploadPlatformInfo) {
+                val path = fileSystem.join(cacheDir, "platform_info.txt")
+                try {
+                    val platformInfo = systemInfo.getPlatformInfo()
+                    fileSystem.writeText(path, platformInfo)
+                } catch (e: Exception) { logger.e("ArchiveGenerator", "platform_info failed", e) }
                 if (fileSystem.exists(path) && fileSystem.size(path) > 0) {
                     miscFiles.add(fileSystem.getCanonicalPath(path))
                     filesToCleanUp.add(path)

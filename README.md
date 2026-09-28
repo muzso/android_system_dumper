@@ -8,35 +8,35 @@ This is a vulnerability research helper tool designed to collect and securely sh
 
 - **Filesystem scan**: Recursively scans the filesystem for readable files, processes the contents of well-known configuration files to discover additional file paths (e.g. notice.xml, SELinux context files, fstab files, modules.(dep|load), etc.).
 - **Privacy exclusions**: No Android storage permissions are declared or used, thus the OS itself prevents access to any user data. As an additional privacy measure, the filesystem scanner skips paths that match a predefined exclusion list (with known locations where user data might be stored).
-- **Secure archiving**: Packages collected data into encrypted (or optionally plain) ZIP archives using [Zip4j](https://github.com/srikanth-lingala/zip4j).
+- **Secure archiving**: Packages collected data into encrypted ZIP archives using [Zip4j](https://github.com/srikanth-lingala/zip4j).
 - **File transfer**: Both uploads (via internet connection) and downloads (via local network) are supported.
 - **Anonymous uploading**: Integrated support for the **Tor** network (through the Guardian Project's [tor-android](https://github.com/guardianproject/tor-android) and [jtorctl](https://github.com/torproject/jtorctl)) allows anonymous upload of dumps to services like [Gofile](https://gofile.io/) and [Filebin](https://filebin.net/).
 - **IP privacy verification**:
   - If "Use Tor network" is selected, a request to https://check.torproject.org/api/ip automatically verifies at the start of uploads that all requests are actually routed through the Tor network. Upload is canceled if this check fails.
   - The "IP Information" screen allows you to "manually" verify that traffic is correctly routed through the Tor network (using third-party GeoIP services like [json.geoiplookup.io](https://json.geoiplookup.io/) and [ipwho.is](https://ipwho.is/)). The Tor service uses different circuits for every host you connect to, so it's very likely that the file sharing services will see a different exit node than what these GeoIP services see. If "Use Tor network" is disabled, you'll see info on your own IP.
-- **HTTP Server**: for the (direct) device <-> device file transfers an HTTP Server is started and the URL (to connect to) is presented via QR code.
-- **QR code sharing**: Generates QR codes (using [ZXing](https://github.com/zxing/zxing)) for the download URL and the ZIP encryption passphrase (useful on devices where these would be difficult to export otherwise, such as devices running AAOS).
+- **HTTP Server**: for the (direct) device <-> device file transfers (i.e. download scenario) an HTTP Server is started and the URL to connect to is presented via QR code.
+- **QR code sharing**: Generates QR codes (using [ZXing](https://github.com/zxing/zxing)) for the download URL and the ZIP encryption passphrase (useful on devices where these would be difficult to export otherwise, such as vehicle infotainment systems running AAOS).
 - **Modular architecture**: Built with Clean Architecture principles (including Google's [architecture guidelines](https://developer.android.com/topic/architecture)) to ensure scalability and maintainability.
-- **Device support**: Built to be compatible with both standard Android devices and Android Automotive OS (AAOS).
+- **Device support**: Built to be compatible with both standard Android devices and Android Automotive OS (AAOS). Wasn't tested with Android TV and Wear OS.
 
 ## Usage
 
-### Step#1: Scans the filesystem
+### Step#1: Filesystem scan
 
-The app has a list of built-in paths that it uses as the roots for the recursive filesystem scan. It also has a list of paths (well-known to contain user data) to exclude from the scan in case access to any of the discovered paths are for some reason is not prevented by the OS itself.
+The app has a list of built-in paths that it uses as the roots for the recursive filesystem scan. It also has a list of paths (well-known to contain user data) to exclude from the scan in case access to any of the discovered paths are for some reason not prevented by the OS itself.
 
 Some files (mostly configuration files found during the recursive scan) are analyzed to gather paths that the recursive scan itself could not find.
 
 ### Step#2: Packaging parameters
 
-The collected files are packaged into ZIP archives. The app provides lots of options to control the ZIP creation parameters (encryption, total file size for ZIP inputs, etc.) and the contents of the ZIPs.
+The collected files are packaged into ZIP archives. The app provides lots of options to control the ZIP creation parameters (encryption, batch size, etc.) and the contents of the ZIPs.
 
 ### Step#3: File transfer
 
 The app provides two ways to get the ZIP archives off the device:
 
 - Upload: This uploads the ZIPs to a public (temporary) file sharing service. Both supported services host the uploaded files only for a short time period.
-- Download: The app starts an HTTP server which serves a self-contained HTML with the ZIP index and a provides a "Download All" button for convenience. It's the user's task to set up the connection between the two devices (the one running this app and the other that downloads the files, e.g. a phone running a web browser). Usually this can be done by creating a Wi-Fi hotspot on the downloading device (phone) and connecting to this hotpost from the device (car head unit, TV, etc.) that runs this app.
+- Download: The app starts an HTTP server which hands an HTML to the webbrowser of the other device (typically a phone) with an index of the ZIP files, and provides a "Download All" button for convenience. It's the user's task to set up the connection between the two devices (the one running this app and the other that downloads the files). Usually this can be achieved by creating a Wi-Fi hotspot on the downloading device (phone) and connecting the device running this app (vehicle infotainment, TV, etc.) to that hotspot.
 
 ## Privacy
 
@@ -46,25 +46,25 @@ The default settings of the app provide reasonable privacy for the upload scenar
 
 By default, if you're using the upload scenario, the file sharing services will be able to see that an upload came from your IP address. Routing the network traffic through the [Tor network](https://en.wikipedia.org/wiki/Tor_(network)) protects you from this.
 
-Some network providers completely block Tor traffic, some block it only occasionally (perhaps due to some dynamic threat monitoring feature), in these cases you'll probably experience a network timeout in the "Preparing ..." phase of the upload process. 
+Some network providers completely block Tor traffic, some block it only occasionally. In these cases you'll probably experience a network timeout in the "Preparing ..." phase of the upload process.
 
 ### ZIP central directory vs. encryption
 
-Standard ZIP files don't allow the encryption of the central directory, thus the list of included files (paths and file sizes) is always visible even without knowing the passphrase or cracking the encryption.
+Standard ZIP files don't allow the encryption of the central directory, thus the list of included files (paths and file sizes) is always visible even without knowing the ZIP passphrase or cracking the encryption.
 
 To work around this problem, you can enable the "Use double-zipping" option. This will first package the collected files into a plain (i.e. not encrypted) ZIP with compression, then package this ZIP into another ZIP with encryption and no compression. Based on my tests double-zipping is not slower in upload scenarios and the difference in running time for downloads is negligible (e.g. 62s vs. 57s).
 
-Also, double-zipping might provide some level of protection against [known-plaintext attacks](https://en.wikipedia.org/wiki/ZIP_(file_format)#Encryption) on the standard ZipCrypto encryption.
+Also, double-zipping might make [known-plaintext attacks](https://en.wikipedia.org/wiki/ZIP_(file_format)#Encryption) on the standard ZipCrypto encryption more difficult.
 
 If you want maximum privacy, switch the encryption method to AES, but you might need a third-party app to decrypt the ZIPs (e.g. Windows 11 doesn't support AES encrypted ZIPs out-of-the-box).
 
 ## Demo
 
-Here's a video of the upload process:
+Here's a [video](https://www.youtube.com/watch?v=878IzMO6CiQ) of the upload process:
 
 [![Uploading](site/upload_screenshot.png)](https://www.youtube.com/watch?v=878IzMO6CiQ)
 
-And here's a video of the download process, showing the side-by-side screens of an emulated target device and a phone (used as a downloader):
+And here's a [video](https://www.youtube.com/watch?v=4zX-aR7sUuw) of the download process, showing the side-by-side screens of an emulated target device and a phone (used as a downloader):
 
 [![Downloading](site/download_screenshot.png)](https://www.youtube.com/watch?v=4zX-aR7sUuw)
 
@@ -80,11 +80,11 @@ And here's a video of the download process, showing the side-by-side screens of 
   - `x86`
   - `x86_64`
 - **Hardware requirements**: An active Internet connection (Wi-Fi or mobile data) is required for Tor and uploading features.
-- **Note**: The application has **not** been tested on Android TV devices with a TV remote; UI navigation may be inconsistent on this platform.
+- **Note**: The application has not been tested on Android TV devices (with a TV remote) and Wear OS devices (watches, etc.); UI navigation may be inconsistent on these platforms.
 
 ## Installation
 
-**Important Note**: If you have full ADB access to your device, this application may not be necessary for your needs, as `adb bugreport` and other methods (e.g. shell script run via `adb shell`) offer similar access, often with wider reach. This tool is primarily intended for scenarios where ADB/root is unavailable.
+**Important note**: If you have full ADB access to your device, this application may not be very useful to you, as `adb bugreport` and other methods (e.g. shell script run via `adb shell`) offer similar access, often with wider reach. This tool is primarily intended for scenarios where neither ADB nor root are unavailable.
 
 To install the application:
 
@@ -100,33 +100,33 @@ To install the application:
 
 ## Effectiveness
 
-On a production Volvo head unit the app could read 5845 files (3432.7 MB) and failed to read only 430 files (241.5 MB). That's 93.1% of all files by count and 93.4% by size.
+On a production head unit the app could read 5845 files (3432.7 MB) and failed to read only 430 files (241.5 MB). That's 93.1% of all files by count and 93.4% by size.
 
-A large part (293, i.e. 68.1%) of the unaccessible files are in:
+A large part (293, i.e. 68.1%) of the inaccessible files are in:
 
 - /system/bin
 - /vendor/bin
 
-The rest is distributed among multiple directories.
+The rest is distributed between multiple directories.
 
 ## Development
 
 ### Principles & Structure
 
-The app follows (more or less) **Clean Architecture** and [**SOLID**](https://en.wikipedia.org/wiki/SOLID) principles, utilizing a multi-module Gradle setup:
+The app follows **Clean Architecture** and [**SOLID**](https://en.wikipedia.org/wiki/SOLID) principles, utilizing a multi-module Gradle setup:
 
 - **`:domain`**: A pure Kotlin module containing business logic, entities, and repository interfaces. It is independent of the Android framework.
 - **`:app`**: An Android library module that contains the Jetpack Compose UI, ViewModels, and shared Android-specific implementations.
 - **`:mobile`**: The application module targeting standard Android devices.
-- **`:automotive`**: The application module targeting AAOS (Android Automotive OS) devices, specifically tested on several Volvo head units.
+- **`:automotive`**: The application module targeting AAOS (Android Automotive OS) devices, tested on multiple head units.
 
-For now almost all of the app is contained in the `app` and `domain` modules, but the architecture would allow separate UI implementation for AAOS devices. If someone wanted to publish this app on Google Play (which may be possible given that it does not require any dangerous permissions), the AAOS UI could be rewritten to use the [Templates Host feature](https://developer.android.com/training/cars/apps/automotive-os).
+For now almost all of the app is contained in the `app` and `domain` modules, but the architecture would allow separate UI implementation for AAOS devices (and TVs and Wear OS device). If someone wanted to publish this app on Google Play (which may be possible given that it does not require any dangerous permissions), the AAOS UI could be rewritten to use the [Templates Host feature](https://developer.android.com/training/cars/apps/automotive-os).
 
 ### Third-Party Libraries
 
 These are some of the major libraries used:
  
-- **Tor (Guardian Project)**: Provides anonymity for network requests.
+- **Tor (Guardian Project)**: Provides a reasonable level of anonymity for network requests.
 - **Zip4j**: Handles robust ZIP archive creation with encryption (including AES).
 - **ZXing**: Used to generate QR codes for sharing upload results.
 - **Hilt**: Dependency injection framework.
@@ -152,15 +152,15 @@ The application is actively developed and manually tested in the following envir
 
 - Android Studio emulator (multiple API levels starting with Android 9 / API Level 28).
 - Google Pixel phone (Android 17).
-- Volvo head units (AAOS 12 and above).
+- Vehicle infotainment systems, aka. head units (AAOS 12 and above).
 
-Note: the Android Studio emulator (starting with [35.2.10](https://developer.android.com/studio/emulator_archive)) has a bug, conflict, or regression affecting Android 8 based virtual devices, so regular testing is performed with an up-to-date emulator on Android 9 and later virtual devices. Before the initial release, the app has been tested with an older emulator version and an Android 8 based virtual device as well.
+Note: the Android Studio emulator (starting with [35.2.10](https://developer.android.com/studio/emulator_archive)) has a bug, conflict, or regression affecting Android 8 based virtual devices, so regular testing is performed with an up-to-date emulator on Android 9 and later virtual devices. Before the initial release, the app was tested with an older emulator version and an Android 8 based virtual device as well to make sure that the minimum supported SDK level actually works.
 
 ## Contributing
 
 You can contribute in the following ways:
 
-- **Issue tracker**: Please report bugs or suggest features through the [GitHub issue tracker](https://github.com/muzso/android_system_dumper/issues).
+- **Issue tracker**: Report bugs or suggest features through the [GitHub issue tracker](https://github.com/muzso/android_system_dumper/issues).
 - **Pull requests**: Submit your changes as pull requests for review.
 - **Security**: Use GitHub's [vulnerability reporting feature](https://github.com/muzso/android_system_dumper/security/advisories/new) to report security vulnerabilities.
 
@@ -173,20 +173,22 @@ You can build APKs/AABs from the `mobile` and `automotive` modules.
 The `app` module has different defaults for `debug` and `release` build variants to reduce the time necessary for manual upload tests:
 
 - `BATCH_LIMIT`: `debug` builds upload only the first batch of collected readable files, `release` builds upload all batches.
-- `DEFAULT_BATCH_SIZE_MB`: `debug` builds have a default batch size of 200 MB, `release` builds use 500 MB.
+- `FILE_COUNT_LIMIT`: `debug` builds stop the file scanning phase when the number of collected readable files reaches this limit, `release` builds scan the entire file system.
+- `LOG_TO_SYSTEM`: `debug` builds log to Android Log as well, `release` builds only log to `log.txt`.
 
 ### Requirements
- 
+
 - Android SDK 37+
 - Android NDK (for JNI components)
 
 ### Build Targets
 
 You can build the application for different platforms using the following modules:
+
 - **Mobile**: Build the `:mobile` module for standard Android devices.
 - **Automotive**: Build the `:automotive` module for AAOS devices.
 
-To build an APK from the command line:
+To build an unsigned APK from the command line:
 
 ```bash
 ./gradlew :mobile:assembleRelease
@@ -198,10 +200,10 @@ To build an APK from the command line:
 
 ### Logging
 
-Android System Dumper features comprehensive logging to both the standard Android System Log (Logcat) and a local file for persistent storage.
+Android System Dumper features comprehensive logging to both the standard Android Log and a local file for persistent storage.
 
-- **System Logs**: View real-time logs via `adb logcat` (disabled for `release` builds via BuildConfig).
-- **File Logs**: Logs are stored in the application's cache directory at `cacheDir/logs.txt`.
+- **System Logs**: View real-time logs via `adb logcat` (disabled for `release` builds via `BuildConfig`).
+- **File Logs**: Logs are stored in the application's cache directory in `cacheDir/logs.txt`.
 - **Log Export**: The application has an option in the upload settings to include the `Application logs` in the system dump, allowing for remote debugging.
 
 ## License

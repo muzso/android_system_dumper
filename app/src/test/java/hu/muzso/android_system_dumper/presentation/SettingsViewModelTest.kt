@@ -146,6 +146,21 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `SetShouldUploadPlatformInfo updates state`() = runTest {
+        createViewModel()
+        val collectJob = launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.shouldUploadPlatformInfo).isTrue()
+
+        viewModel.processIntent(SettingsViewModel.Intent.SetShouldUploadPlatformInfo(false))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.shouldUploadPlatformInfo).isFalse()
+        collectJob.cancel()
+    }
+
+    @Test
     fun `SetMaxUploadRetries updates state`() = runTest {
         createViewModel()
         val collectJob = launch { viewModel.uiState.collect {} }

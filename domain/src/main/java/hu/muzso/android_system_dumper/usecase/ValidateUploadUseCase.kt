@@ -37,7 +37,10 @@ class ValidateUploadUseCase @Inject constructor(
             return ValidationResult.Error.InvalidProxy(parameters.proxySpecification)
         }
 
-        if (!parameters.shouldUploadZips && !parameters.shouldUploadFileLists) {
+        if (!parameters.shouldUploadZips && !parameters.shouldUploadFileLists &&
+            !parameters.shouldUploadGetprop && !parameters.shouldUploadPlatformInfo &&
+            !parameters.shouldUploadAppLogs
+        ) {
             return ValidationResult.Error.NoUploadSelected
         }
 

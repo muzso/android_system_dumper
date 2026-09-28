@@ -72,12 +72,30 @@ class ValidateUploadUseCaseTest {
     fun `execute returns NoUploadSelected when nothing is selected for upload`() {
         val parameters = createValidParameters().copy(
             shouldUploadZips = false,
-            shouldUploadFileLists = false
+            shouldUploadFileLists = false,
+            shouldUploadGetprop = false,
+            shouldUploadPlatformInfo = false,
+            shouldUploadAppLogs = false
         )
 
         val result = useCase.execute(parameters)
 
         assertThat(result).isEqualTo(ValidateUploadUseCase.ValidationResult.Error.NoUploadSelected)
+    }
+
+    @Test
+    fun `execute returns Success when only shouldUploadPlatformInfo is selected`() {
+        val parameters = createValidParameters().copy(
+            shouldUploadZips = false,
+            shouldUploadFileLists = false,
+            shouldUploadGetprop = false,
+            shouldUploadPlatformInfo = true,
+            shouldUploadAppLogs = false
+        )
+
+        val result = useCase.execute(parameters)
+
+        assertThat(result).isEqualTo(ValidateUploadUseCase.ValidationResult.Success)
     }
 
     private fun createValidParameters() = UploadParameters(
@@ -86,6 +104,7 @@ class ValidateUploadUseCaseTest {
         shouldUseTor = false,
         shouldUploadZips = true,
         shouldUploadFileLists = true,
+        shouldUploadPlatformInfo = true,
         shouldUploadGetprop = true,
         shouldUploadAppLogs = true,
         maxUploadRetries = 5,

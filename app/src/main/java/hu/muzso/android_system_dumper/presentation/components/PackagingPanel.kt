@@ -41,6 +41,7 @@ import hu.muzso.android_system_dumper.theme.AndroidSystemDumperTheme
  * @param onSetCustomBatchSizeMb Callback to update the custom batch size.
  * @param onSetShouldUploadZips Callback to toggle ZIP upload.
  * @param onSetShouldUploadFileLists Callback to toggle file list uploads.
+ * @param onSetShouldUploadPlatformInfo Callback to toggle platform info upload.
  * @param onSetShouldUploadGetprop Callback to toggle getprop upload.
  * @param onSetShouldUploadAppLogs Callback to toggle app logs upload.
  * @param onSetZipEncryption Callback to update ZIP encryption.
@@ -56,6 +57,7 @@ fun PackagingPanel(
     onSetCustomBatchSizeMb: (String) -> Unit,
     onSetShouldUploadZips: (Boolean) -> Unit,
     onSetShouldUploadFileLists: (Boolean) -> Unit,
+    onSetShouldUploadPlatformInfo: (Boolean) -> Unit,
     onSetShouldUploadGetprop: (Boolean) -> Unit,
     onSetShouldUploadAppLogs: (Boolean) -> Unit,
     onSetZipEncryption: (ZipEncryption) -> Unit,
@@ -123,6 +125,12 @@ fun PackagingPanel(
                 testTag = "switch_upload_file_lists"
             )
             SettingsSwitchRow(
+                label = stringResource(R.string.platform_info),
+                checked = settingsUiState.shouldUploadPlatformInfo,
+                onCheckedChange = onSetShouldUploadPlatformInfo,
+                testTag = "switch_upload_platform_info"
+            )
+            SettingsSwitchRow(
                 label = stringResource(R.string.output_of_getprop),
                 checked = settingsUiState.shouldUploadGetprop,
                 onCheckedChange = onSetShouldUploadGetprop,
@@ -149,6 +157,7 @@ fun PackagingPanelPreview() {
             onSetCustomBatchSizeMb = {},
             onSetShouldUploadZips = {},
             onSetShouldUploadFileLists = {},
+            onSetShouldUploadPlatformInfo = {},
             onSetShouldUploadGetprop = {},
             onSetShouldUploadAppLogs = {},
             onSetZipEncryption = {},

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2026-09-28
+
+### Added
+
+- Added the "Platform info" toggle to packaging options. If enabled, a "platform_info.txt" is added to misc.zip with info retrieved from android.os.Build, android.os.Build.VERSION and PackageManager.getSystemFeatures().
+
+### Fixed
+
+- Fixed a couple of readme issues (typos, linguistic issues, etc.).
+- Fixed a bug where log.txt (in misc.zip) could have a different file size in the ZIP entry's local header than in the ZIP file's central directory.
+
 ## [1.1.4] - 2026-09-02
 
 ### Changed

@@ -38,6 +38,7 @@ class PackagingPanelTest {
                     onSetCustomBatchSizeMb = { batchSize.set(it) },
                     onSetShouldUploadZips = {},
                     onSetShouldUploadFileLists = {},
+                    onSetShouldUploadPlatformInfo = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},
@@ -61,6 +62,7 @@ class PackagingPanelTest {
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = {},
                     onSetShouldUploadFileLists = {},
+                    onSetShouldUploadPlatformInfo = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},
@@ -84,6 +86,7 @@ class PackagingPanelTest {
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = { toggled.set(it) },
                     onSetShouldUploadFileLists = {},
+                    onSetShouldUploadPlatformInfo = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},
@@ -100,6 +103,7 @@ class PackagingPanelTest {
     @Test
     fun allUploadTogglesWork() {
         val fileLists = AtomicBoolean(false)
+        val platformInfo = AtomicBoolean(false)
         val getprop = AtomicBoolean(false)
         val applogs = AtomicBoolean(false)
 
@@ -108,6 +112,7 @@ class PackagingPanelTest {
                 PackagingPanel(
                     settingsUiState = SettingsUiState(
                         shouldUploadFileLists = false,
+                        shouldUploadPlatformInfo = false,
                         shouldUploadGetprop = false,
                         shouldUploadAppLogs = false
                     ),
@@ -116,6 +121,7 @@ class PackagingPanelTest {
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = {},
                     onSetShouldUploadFileLists = { fileLists.set(it) },
+                    onSetShouldUploadPlatformInfo = { platformInfo.set(it) },
                     onSetShouldUploadGetprop = { getprop.set(it) },
                     onSetShouldUploadAppLogs = { applogs.set(it) },
                     onSetZipEncryption = {},
@@ -126,10 +132,12 @@ class PackagingPanelTest {
         }
 
         composeTestRule.onNodeWithTag("switch_upload_file_lists").performClick()
+        composeTestRule.onNodeWithTag("switch_upload_platform_info").performClick()
         composeTestRule.onNodeWithTag("switch_upload_getprop").performClick()
         composeTestRule.onNodeWithTag("switch_upload_applogs").performClick()
 
         Truth.assertThat(fileLists.get()).isTrue()
+        Truth.assertThat(platformInfo.get()).isTrue()
         Truth.assertThat(getprop.get()).isTrue()
         Truth.assertThat(applogs.get()).isTrue()
     }
@@ -145,6 +153,7 @@ class PackagingPanelTest {
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = {},
                     onSetShouldUploadFileLists = {},
+                    onSetShouldUploadPlatformInfo = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},
@@ -167,6 +176,7 @@ class PackagingPanelTest {
                     onSetCustomBatchSizeMb = {},
                     onSetShouldUploadZips = {},
                     onSetShouldUploadFileLists = {},
+                    onSetShouldUploadPlatformInfo = {},
                     onSetShouldUploadGetprop = {},
                     onSetShouldUploadAppLogs = {},
                     onSetZipEncryption = {},

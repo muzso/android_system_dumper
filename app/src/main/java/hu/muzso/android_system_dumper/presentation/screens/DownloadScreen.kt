@@ -81,6 +81,7 @@ fun DownloadScreen(
             shouldUseTor = false,
             shouldUploadZips = settingsUiState.shouldUploadZips,
             shouldUploadFileLists = settingsUiState.shouldUploadFileLists,
+            shouldUploadPlatformInfo = settingsUiState.shouldUploadPlatformInfo,
             shouldUploadGetprop = settingsUiState.shouldUploadGetprop,
             shouldUploadAppLogs = settingsUiState.shouldUploadAppLogs,
             maxUploadRetries = settingsUiState.maxUploadRetries.toIntOrNull() ?: SettingsUiState.DEFAULT_MAX_UPLOAD_RETRIES.toInt(),

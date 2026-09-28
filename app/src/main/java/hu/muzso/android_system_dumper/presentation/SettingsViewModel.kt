@@ -60,6 +60,7 @@ class SettingsViewModel @Inject constructor(
         data class SetShouldUseTor(val value: Boolean) : Intent()
         data class SetShouldUploadZips(val value: Boolean) : Intent()
         data class SetShouldUploadFileLists(val value: Boolean) : Intent()
+        data class SetShouldUploadPlatformInfo(val value: Boolean) : Intent()
         data class SetShouldUploadGetprop(val value: Boolean) : Intent()
         data class SetShouldUploadAppLogs(val value: Boolean) : Intent()
         data class SetMaxUploadRetries(val value: String) : Intent()
@@ -80,6 +81,7 @@ class SettingsViewModel @Inject constructor(
     private val _shouldUseTor = savedStateHandle.getStateFlow("shouldUseTor", SettingsUiState.DEFAULT_SHOULD_USE_TOR)
     private val _shouldUploadZips = savedStateHandle.getStateFlow("shouldUploadZips", SettingsUiState.DEFAULT_SHOULD_UPLOAD_ZIPS)
     private val _shouldUploadFileLists = savedStateHandle.getStateFlow("shouldUploadFileLists", SettingsUiState.DEFAULT_SHOULD_UPLOAD_FILE_LISTS)
+    private val _shouldUploadPlatformInfo = savedStateHandle.getStateFlow("shouldUploadPlatformInfo", SettingsUiState.DEFAULT_SHOULD_UPLOAD_PLATFORM_INFO)
     private val _shouldUploadGetprop = savedStateHandle.getStateFlow("shouldUploadGetprop", SettingsUiState.DEFAULT_SHOULD_UPLOAD_GETPROP)
     private val _shouldUploadAppLogs = savedStateHandle.getStateFlow("shouldUploadAppLogs", SettingsUiState.DEFAULT_SHOULD_UPLOAD_APP_LOGS)
     private val _zipEncryption = savedStateHandle.getStateFlow("zipEncryption", SettingsUiState.DEFAULT_ZIP_ENCRYPTION)
@@ -94,7 +96,7 @@ class SettingsViewModel @Inject constructor(
 
     val uiState: StateFlow<SettingsUiState> = combine(
         _customBatchSizeMb, _proxySpecification, _shouldUseTor, _shouldUploadZips,
-        _shouldUploadFileLists, _shouldUploadGetprop,
+        _shouldUploadFileLists, _shouldUploadPlatformInfo, _shouldUploadGetprop,
         _shouldUploadAppLogs, _zipEncryption, _useDoubleZipping, _ignoreExcludeList,
         _maxUploadRetries, _selectedService, _selectedIpSource, _fatalError
     ) { args ->
@@ -105,17 +107,18 @@ class SettingsViewModel @Inject constructor(
             shouldUseTor = args[2] as Boolean,
             shouldUploadZips = args[3] as Boolean,
             shouldUploadFileLists = args[4] as Boolean,
-            shouldUploadGetprop = args[5] as Boolean,
-            shouldUploadAppLogs = args[6] as Boolean,
-            zipEncryption = args[7] as ZipEncryption,
-            useDoubleZipping = args[8] as Boolean,
-            ignoreExcludeList = args[9] as Boolean,
-            maxUploadRetries = args[10] as String,
-            selectedService = args[11] as UploadRepository,
+            shouldUploadPlatformInfo = args[5] as Boolean,
+            shouldUploadGetprop = args[6] as Boolean,
+            shouldUploadAppLogs = args[7] as Boolean,
+            zipEncryption = args[8] as ZipEncryption,
+            useDoubleZipping = args[9] as Boolean,
+            ignoreExcludeList = args[10] as Boolean,
+            maxUploadRetries = args[11] as String,
+            selectedService = args[12] as UploadRepository,
             services = services,
-            selectedIpSource = args[12] as String,
+            selectedIpSource = args[13] as String,
             availableIpSources = ipInfoRepository.getAvailableSources(),
-            fatalError = args[13] as FatalError?,
+            fatalError = args[14] as FatalError?,
             exclusionList = loadExcludeListUseCase.execute(),
             discoveryRoots = getSeedPathsUseCase.execute()
         )
@@ -156,6 +159,7 @@ class SettingsViewModel @Inject constructor(
             is Intent.SetShouldUseTor -> setShouldUseTor(intent.value)
             is Intent.SetShouldUploadZips -> savedStateHandle["shouldUploadZips"] = intent.value
             is Intent.SetShouldUploadFileLists -> savedStateHandle["shouldUploadFileLists"] = intent.value
+            is Intent.SetShouldUploadPlatformInfo -> savedStateHandle["shouldUploadPlatformInfo"] = intent.value
             is Intent.SetShouldUploadGetprop -> savedStateHandle["shouldUploadGetprop"] = intent.value
             is Intent.SetShouldUploadAppLogs -> savedStateHandle["shouldUploadAppLogs"] = intent.value
             is Intent.SetMaxUploadRetries -> savedStateHandle["maxUploadRetries"] = intent.value

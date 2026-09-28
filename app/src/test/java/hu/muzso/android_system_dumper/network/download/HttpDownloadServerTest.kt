@@ -64,6 +64,7 @@ class HttpDownloadServerTest {
         shouldUseTor = false,
         shouldUploadZips = true,
         shouldUploadFileLists = true,
+        shouldUploadPlatformInfo = true,
         shouldUploadGetprop = true,
         shouldUploadAppLogs = true,
         maxUploadRetries = 5,

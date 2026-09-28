@@ -55,9 +55,9 @@ class Zip4jZipCreator @Inject constructor(
             fileSystem.openOutputStream(options.outputFilePath).use { outputStream ->
                 ZipOutputStream(outputStream, options.passphrase).use { outerZipStream ->
                     if (options.useDoubleZipping) {
-                        createDoubleZippedArchive(outerZipStream, uniqueFiles, options)
+                        createDoubleZippedArchive(outerZipStream, uniqueFiles, options, readIntoMemory)
                     } else {
-                        createStandardArchive(outerZipStream, uniqueFiles, options, false)
+                        createStandardArchive(outerZipStream, uniqueFiles, options, readIntoMemory)
                     }
                 }
             }
@@ -107,7 +107,6 @@ class Zip4jZipCreator @Inject constructor(
                 }
                 fileNameInZip = file.zipPath
                 lastModifiedFileTime = fileSystem.lastModified(path)
-                entrySize = fileSize
             }
             // Virtual files in /proc are usually reported with zero length.
             // If this happens, we've to read it fully to get the real length.
@@ -161,7 +160,8 @@ class Zip4jZipCreator @Inject constructor(
     private suspend fun createDoubleZippedArchive(
         outerZipStream: ZipOutputStream,
         uniqueFiles: Collection<ZipFileEntry>,
-        options: ZipOptions
+        options: ZipOptions,
+        readIntoMemory: Boolean
     ) {
         val outputFilename = fileSystem.getFileName(options.outputFilePath)
         val innerZipFilename = if (outputFilename.endsWith(".zip", ignoreCase = true)) {
@@ -192,7 +192,7 @@ class Zip4jZipCreator @Inject constructor(
         )
 
         ZipOutputStream(NonClosingOutputStream(outerZipStream)).use { innerZipStream ->
-            createStandardArchive(innerZipStream, uniqueFiles, innerOptions, false)
+            createStandardArchive(innerZipStream, uniqueFiles, innerOptions, readIntoMemory)
         }
 
         outerZipStream.closeEntry()

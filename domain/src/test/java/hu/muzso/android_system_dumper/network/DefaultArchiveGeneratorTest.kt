@@ -72,6 +72,54 @@ class DefaultArchiveGeneratorTest {
     }
 
     @Test
+    fun `shouldGenerateMisc returns true when only shouldUploadPlatformInfo is set`() {
+        val params = mockk<UploadParameters>(relaxed = true)
+        every { params.shouldUploadFileLists } returns false
+        every { params.shouldUploadGetprop } returns false
+        every { params.shouldUploadAppLogs } returns false
+        every { params.shouldUploadPlatformInfo } returns true
+        val scanResult = ScanResult(readableFiles = emptyList())
+
+        generator.prepare(params, scanResult)
+
+        Truth.assertThat(generator.shouldGenerateMisc()).isTrue()
+    }
+
+    @Test
+    fun `generateMisc writes platform_info_txt when shouldUploadPlatformInfo is true`() = runTest {
+        val params = mockk<UploadParameters>(relaxed = true)
+        every { params.shouldUploadPlatformInfo } returns true
+        every { params.zipEncryption } returns ZipEncryption.NONE
+        every { systemInfo.getPlatformInfo() } returns "Platform: Android (standard)"
+
+        val scanResult = ScanResult(readableFiles = emptyList())
+
+        coEvery { fileSystem.getCacheDir() } returns "/cache"
+        coEvery { fileSystem.join(any(), any()) } answers { "${it.invocation.args[0]}/${it.invocation.args[1]}" }
+        coEvery { fileSystem.writeText(any(), any()) } returns Unit
+        coEvery { fileSystem.getCanonicalPath(any()) } answers { it.invocation.args[0] as String }
+        coEvery { fileSystem.getFileName(any()) } answers { (it.invocation.args[0] as String).substringAfterLast('/') }
+        coEvery { fileSystem.exists(any()) } returns true
+        coEvery { fileSystem.size(any()) } returns 10L
+        coEvery { cleanupUseCase.execute(any()) } returns Unit
+
+        every { createArchiveUseCase.generateMiscZipFilename(any()) } returns "misc.zip"
+        coEvery { createArchiveUseCase.execute(any(), any(), any()) } returns DomainResult.Success("misc.zip")
+
+        generator.prepare(params, scanResult)
+        generator.generateMisc()
+
+        coVerify { fileSystem.writeText("/cache/platform_info.txt", "Platform: Android (standard)") }
+        coVerify {
+            createArchiveUseCase.execute(
+                match { list -> list.any { it.zipPath == "platform_info.txt" } },
+                any(),
+                true
+            )
+        }
+    }
+
+    @Test
     fun `generateMisc writes all five file lists when shouldUploadFileLists is true`() = runTest {
         val params = mockk<UploadParameters>(relaxed = true)
         every { params.shouldUploadFileLists } returns true

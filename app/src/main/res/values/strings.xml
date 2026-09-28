@@ -35,6 +35,7 @@
     <string name="select_what_to_package">Select what to put into ZIPs:</string>
     <string name="readable_files_filesystem">Readable files collected from the filesystem</string>
     <string name="file_lists">File lists</string>
+    <string name="platform_info">Platform info</string>
     <string name="output_of_getprop">Output of getprop</string>
     <string name="upload_logs">Application logs</string>
     <string name="status_uploaded">uploaded</string>
@@ -57,6 +58,7 @@
 • Use double-zipping: For maximum privacy (if uploading to a file sharing service), apply double-zipping. Standard ZIP files don\'t allow the encryption of the central directory, thus the list of files in a ZIP file can always be read without knowing the passphrase. Putting a compressed plain ZIP inside a not compressed, but encrypted ZIP works around this problem. Of course this option doesn\'t make sense (and is disabled) if ZIP encryption is set to NONE.\n\n
 • Readable files collected from the filesystem: Control if the actual ZIP bundles containing the collected readable files should be uploaded. These ZIPs can take up several gigabytes and upload might take a long time depending on your internet connection\'s bandwidth. Disabling this option is good for a dry-run. You can just upload the list of files that were found to be readable, open/download it and see if you\'re OK with those files being uploaded to the file sharing service.\n\n
 • File lists: Control if a number of file lists should be uploaded (readable_list.txt, unreadable_list.txt, excluded_list.txt, missing_list.txt, symlink_list.txt).\n\n
+• Platform info (platform_info.txt): Control if Android build, version, system features and some hardware properties (mem, cpu, screen size) should be uploaded.\n\n
 • Output of getprop (getprop.txt): Control if the output of the \"getprop\" command (i.e. Android system properties) should be uploaded.\n\n
 • Application logs (logs.txt): Control if logs (of this application) should be uploaded.
 • File sharing service: Select the service to upload to.\n\n

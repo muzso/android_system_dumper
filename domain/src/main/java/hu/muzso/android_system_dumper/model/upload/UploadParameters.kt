@@ -10,6 +10,7 @@ data class UploadParameters(
     val shouldUploadZips: Boolean,
     val shouldUploadFileLists: Boolean,
     val shouldUploadGetprop: Boolean,
+    val shouldUploadPlatformInfo: Boolean,
     val shouldUploadAppLogs: Boolean,
     val maxUploadRetries: Int,
     val zipEncryption: ZipEncryption,

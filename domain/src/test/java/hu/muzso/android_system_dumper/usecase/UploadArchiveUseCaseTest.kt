@@ -387,6 +387,7 @@ class UploadArchiveUseCaseTest {
         shouldUseTor = false,
         shouldUploadZips = false,
         shouldUploadFileLists = false,
+        shouldUploadPlatformInfo = false,
         shouldUploadGetprop = false,
         shouldUploadAppLogs = false,
         maxUploadRetries = 5,
