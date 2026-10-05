@@ -279,20 +279,18 @@ class DefaultMetadataCollectorTest {
     @Test
     fun `processMetadata parses protobuf file`() = runTest(testDispatcher) {
         val path = "/system/etc/linker.config.pb"
-        // Binary data with some paths: /system/bin/app_process and libart.so
-        // Delimiters (non-printable or space) around them.
+        // Valid protobuf tags: field 1 (0x0A) len 23, field 3 (0x1A) len 9, field 1 (0x0A) len 5
+        val appProcess = "/system/bin/app_process".toByteArray()
+        val libArt = "libart.so".toByteArray()
+        val dataPath = "/data".toByteArray()
+
         val binaryData = byteArrayOf(
-            0x0A, 0x16, // Random protobuf tags
-            '/'.code.toByte(), 's'.code.toByte(), 'y'.code.toByte(), 's'.code.toByte(), 't'.code.toByte(), 'e'.code.toByte(), 'm'.code.toByte(),
-            '/'.code.toByte(), 'b'.code.toByte(), 'i'.code.toByte(), 'n'.code.toByte(), '/'.code.toByte(), 'a'.code.toByte(), 'p'.code.toByte(), 'p'.code.toByte(),
-            '_'.code.toByte(), 'p'.code.toByte(), 'r'.code.toByte(), 'o'.code.toByte(), 'c'.code.toByte(), 'e'.code.toByte(), 's'.code.toByte(), 's'.code.toByte(),
-            0x00, 0x20, // NUL and SPACE (delimiters)
-            'l'.code.toByte(), 'i'.code.toByte(), 'b'.code.toByte(), 'a'.code.toByte(), 'r'.code.toByte(), 't'.code.toByte(), '.'.code.toByte(), 's'.code.toByte(), 'o'.code.toByte(),
-            0x01, // Another delimiter
-            '1'.code.toByte(), '2'.code.toByte(), '3'.code.toByte(), // Starts with digit, should be ignored
-            0x00,
-            '/'.code.toByte(), 'd'.code.toByte(), 'a'.code.toByte(), 't'.code.toByte(), 'a'.code.toByte(), // Another absolute path
-        )
+            0x0A, appProcess.size.toByte()
+        ) + appProcess + byteArrayOf(
+            0x1A, libArt.size.toByte()
+        ) + libArt + byteArrayOf(
+            0x0A, dataPath.size.toByte()
+        ) + dataPath
         
         val mockFileSystem = mockk<FileSystem>()
         val collectorWithMock = DefaultMetadataCollector(
@@ -313,12 +311,6 @@ class DefaultMetadataCollectorTest {
             sources.add(source)
         }
 
-        // Expected:
-        // /system/bin/app_process -> as is
-        // libart.so -> expanded to 4 paths
-        // /data -> as is
-        // "123" -> ignored (doesn't start with / and doesn't start with letter)
-
         val expectedPaths = mutableListOf("/system/bin/app_process", "/data")
         val prefixes = listOf("/system/lib/", "/system/lib64/", "/vendor/lib/", "/vendor/lib64/")
         expectedPaths.addAll(prefixes.map { it + "libart.so" })
@@ -332,6 +324,42 @@ class DefaultMetadataCollectorTest {
                 match { it.contains("classpath analysis candidates in \"$path\":") }
             )
         }
+    }
+
+    @Test
+    fun `processMetadata parses protobuf file containing quotes and tag bytes`() = runTest(testDispatcher) {
+        val path = "/system/etc/linker.config.pb"
+        // Field 3 (0x1A) libz.so, Field 4 (0x22 = ASCII quote) libdexfile.so
+        val libZ = "libz.so".toByteArray()
+        val libDex = "libdexfile.so".toByteArray()
+
+        val binaryData = byteArrayOf(
+            0x1A, libZ.size.toByte()
+        ) + libZ + byteArrayOf(
+            0x22, libDex.size.toByte()
+        ) + libDex
+
+        val mockFileSystem = mockk<FileSystem>()
+        val collectorWithMock = DefaultMetadataCollector(
+            mockFileSystem,
+            xmlParser,
+            logger,
+            dispatcherProvider,
+            selinuxAnalyzer,
+            getSeedPathsUseCase
+        )
+
+        coEvery { mockFileSystem.openInputStream(path) } returns ByteArrayInputStream(binaryData)
+
+        val foundPaths = mutableListOf<String>()
+        collectorWithMock.processMetadata(path) { innerPath, _ ->
+            foundPaths.add(innerPath)
+        }
+
+        val prefixes = listOf("/system/lib/", "/system/lib64/", "/vendor/lib/", "/vendor/lib64/")
+        val expected = prefixes.map { it + "libz.so" } + prefixes.map { it + "libdexfile.so" }
+
+        assertEquals(expected.sorted(), foundPaths.sorted())
     }
 
     @Test

@@ -276,21 +276,26 @@ class DefaultMetadataCollector @Inject constructor(
 
         try {
             val bytes = fileSystem.openInputStream(path).use { it.readBytes() }
-            val extractedStrings = mutableListOf<String>()
-            var current = StringBuilder()
+            var extractedStrings = extractProtobufStrings(bytes)
 
-            for (byte in bytes) {
-                if (byte in 33..126) {
-                    current.append(byte.toInt().toChar())
-                } else {
-                    if (current.isNotEmpty()) {
-                        extractedStrings.add(current.toString())
-                        current = StringBuilder()
+            if (extractedStrings.isEmpty()) {
+                // Fallback to raw string extraction if file is not valid protobuf
+                val fallbackList = mutableListOf<String>()
+                var current = StringBuilder()
+                for (byte in bytes) {
+                    if (byte in 33..126) {
+                        current.append(byte.toInt().toChar())
+                    } else {
+                        if (current.isNotEmpty()) {
+                            fallbackList.add(current.toString())
+                            current = StringBuilder()
+                        }
                     }
                 }
-            }
-            if (current.isNotEmpty()) {
-                extractedStrings.add(current.toString())
+                if (current.isNotEmpty()) {
+                    fallbackList.add(current.toString())
+                }
+                extractedStrings = fallbackList
             }
 
             extractedStrings.forEach { str ->
@@ -320,6 +325,141 @@ class DefaultMetadataCollector @Inject constructor(
                 TAG,
                 "An exception occurred during parsing of protobuf file \"$path\": ${e.message}"
             )
+        }
+    }
+
+    private fun extractProtobufStrings(bytes: ByteArray): List<String> {
+        val results = mutableListOf<String>()
+        parseProtobufStream(bytes, 0, bytes.size, results, maxDepth = 10)
+        return results
+    }
+
+    private fun parseProtobufStream(
+        bytes: ByteArray,
+        start: Int,
+        end: Int,
+        results: MutableList<String>,
+        maxDepth: Int
+    ) {
+        if (maxDepth <= 0 || start >= end) return
+        var offset = start
+
+        while (offset < end) {
+            val tagStart = offset
+            var tag = 0L
+            var shift = 0
+            var validTag = false
+
+            while (offset < end && shift < 64) {
+                val b = bytes[offset].toInt() and 0xFF
+                offset++
+                tag = tag or ((b and 0x7F).toLong() shl shift)
+                shift += 7
+                if ((b and 0x80) == 0) {
+                    validTag = true
+                    break
+                }
+            }
+
+            if (!validTag) {
+                offset = tagStart + 1
+                continue
+            }
+
+            val wireType = (tag and 0x07).toInt()
+            val fieldNum = (tag ushr 3)
+
+            if (fieldNum == 0L || wireType !in setOf(0, 1, 2, 5)) {
+                offset = tagStart + 1
+                continue
+            }
+
+            when (wireType) {
+                0 -> { // Varint
+                    var validVarint = false
+                    while (offset < end) {
+                        val b = bytes[offset].toInt() and 0xFF
+                        offset++
+                        if ((b and 0x80) == 0) {
+                            validVarint = true
+                            break
+                        }
+                    }
+                    if (!validVarint) {
+                        offset = tagStart + 1
+                        continue
+                    }
+                }
+                1 -> { // 64-bit fixed
+                    if (offset + 8 > end) {
+                        offset = tagStart + 1
+                        continue
+                    }
+                    offset += 8
+                }
+                2 -> { // Length-delimited (string, bytes, or embedded message)
+                    var length = 0
+                    var lenShift = 0
+                    var validLen = false
+                    while (offset < end && lenShift < 32) {
+                        val b = bytes[offset].toInt() and 0xFF
+                        offset++
+                        length = length or ((b and 0x7F) shl lenShift)
+                        lenShift += 7
+                        if ((b and 0x80) == 0) {
+                            validLen = true
+                            break
+                        }
+                    }
+
+                    if (!validLen || length <= 0 || offset + length > end) {
+                        offset = tagStart + 1
+                        continue
+                    }
+
+                    val payloadStart = offset
+                    val payloadEnd = offset + length
+
+                    val subResults = mutableListOf<String>()
+                    parseProtobufStream(bytes, payloadStart, payloadEnd, subResults, maxDepth - 1)
+
+                    if (subResults.isNotEmpty()) {
+                        results.addAll(subResults)
+                    } else {
+                        val str = decodeUtf8IfPrintable(bytes, payloadStart, length)
+                        if (str != null) {
+                            results.add(str)
+                        }
+                    }
+
+                    offset = payloadEnd
+                }
+                5 -> { // 32-bit fixed
+                    if (offset + 4 > end) {
+                        offset = tagStart + 1
+                        continue
+                    }
+                    offset += 4
+                }
+            }
+        }
+    }
+
+    private fun decodeUtf8IfPrintable(bytes: ByteArray, start: Int, length: Int): String? {
+        if (length <= 0) return null
+
+        for (i in start until (start + length)) {
+            val b = bytes[i].toInt() and 0xFF
+            if (b < 32 || b == 127) {
+                return null
+            }
+        }
+
+        return try {
+            val str = String(bytes, start, length, Charsets.UTF_8)
+            if (str.contains('\uFFFD')) null else str
+        } catch (_: Exception) {
+            null
         }
     }
 
